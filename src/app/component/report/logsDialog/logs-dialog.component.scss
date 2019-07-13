@@ -1,0 +1,75 @@
+.numberParts {
+    width: 100px;
+}
+
+::ng-deep .mat-card-subtitle:not(:first-child),
+.mat-card-title:not(:first-child) {
+  margin-top: 0px;
+  background: white;
+}
+
+.campaign-overview {
+  padding-bottom: 16px;
+}
+
+.mat-card-actions {
+  min-height: 35px;
+  margin: 0;
+  background-color: #F2F2F2;
+  border-top: 1px solid #DDDDDD;
+}
+
+.spinner-container {
+  overflow-y: hidden;
+  position: relative;
+}
+
+
+.data-table-header {
+  padding: 8px 4px 8px 16px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06), 0 2px 0 rgba(0, 0, 0, 0.075), 0 3px 0 rgba(0, 0, 0, 0.05), 0 4px 0 rgba(0, 0, 0, 0.015);
+}
+
+.data-table-body {
+  max-height: 245px;
+  padding-top: 0;
+}
+
+.data-table.scrollable .data-table-header {
+  padding-right: 12px;
+}
+
+.data-table.scrollable .data-table-body {
+  overflow-y: scroll;
+}
+
+.data-table .header-column {
+  font-family: 'Roboto', 'Medium', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.5;
+  color: #000000;
+}
+
+.data-table .body-column {
+  font-family: 'Roboto', 'Regular', sans-serif;
+  font-size: 13px;
+  color: #333333;
+}
+
+.data-table .body-column.strong, .data-table .body-column .strong {
+  font-family: 'Roboto', 'Bold', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: #333333;
+}
+
+.data-table .no-data-message-container {
+  height: 44px;
+  margin-left: 16px;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  font-weight: 700;
+  color: rgba(0,0,0,.87);
+}

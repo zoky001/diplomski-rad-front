@@ -1,0 +1,124 @@
+<mat-card>
+
+
+  <mat-card-title class="borderless">
+
+    Zaključani izvještaji
+
+    <strong>( {{ numberReportsInProgress }} )</strong>
+
+
+  </mat-card-title>
+
+  <mat-card-content class="mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource">
+
+      <ng-container matColumnDef="kpo">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="16.16">
+          KPO
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="16.16" (click)="open(element.id)">
+          {{element.kpo}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="16.16">
+          Naziv
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="16.16" (click)="open(element.id)">
+          {{element.name }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="16.16" style="text-align: center">
+          Status
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="16.16" style="text-align: center"
+            (click)="open(element.id)">
+          {{element.status == 'CREATING' ? 'Kreiranje' : ''}}
+          {{element.status == 'IN_PROGRESS' ? 'U radu' : ''}}
+          {{element.status == 'LOCKED' ? 'Zakljucan' : ''}}
+          {{element.status == 'ERROR' ? 'Greska' : ''}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="creationDate">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="16.16" style="text-align: center">
+          Datum kreiranja
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="16.16" class="text-center">
+          {{ element.creationDateAsString }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="owner">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="16.16" style="text-align: center">
+          Vlasnik
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="16.16" class="text-center" (click)="open(element.id)">
+          {{element.owner}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="orgJed">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="16.16" style="text-align: center">
+          Org jed
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="16.16" class="text-center" (click)="open(element.id)">
+          {{element.orgJed}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="3" style="text-align: center">
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="3" class="text-center">
+          <button (click)="remove(element)" *ngIf="! element.isLocked" mat-icon-button color="warn">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="action">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="9">
+
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="9">
+          <div class="example-button-row">
+            <table>
+              <tbody>
+              <tr>
+                <td>
+                  <button (click)="edit(element)" mat-icon-button color="primary"
+                          aria-label="Example icon-button with a heart icon">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </td>
+                <td>
+                  <button (click)="delete(element)" mat-icon-button color="warn"
+                          aria-label="Example icon-button with a heart icon">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+
+          </div>
+
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+  </mat-card-content>
+</mat-card>
+
+

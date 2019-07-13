@@ -1,0 +1,131 @@
+<app-spinner  #spinner></app-spinner>
+
+
+<mat-card>
+  <mat-card-title class="borderless" style="padding:15px">
+    Type of Credit
+    <strong>({{ numberOfEntries }})</strong>
+
+    <div class="buttons m-8-l p-16-t pull-right p-0 m-neg-8-t example-button-row">
+
+      <button mat-raised-button (click)="refresh()">
+        <mat-icon class="md-24">refresh</mat-icon>
+        OSVJEŽI
+      </button>
+
+      <button mat-raised-button color="warn" (click)="add()">
+        <mat-icon class="md-24">add</mat-icon>
+
+        DODAJ
+      </button>
+
+    </div>
+
+
+  </mat-card-title>
+
+  <mat-card-content class="mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource">
+
+      <ng-container matColumnDef="aplikacija">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="14">
+          Aplikacija
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="14">
+          {{element.aplikacija}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="vrstaOznakaPosla">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="14">
+          Vrsta oznaka Posla
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="14">
+          {{element.vrstaOznakaPosla }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="kategorija">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="14" style="text-align: center">
+          Kategorija
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="14" class="text-center">
+          {{element.kategorija}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="sifraNamjene">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="14" style="text-align: center">
+          Šifra namjene
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="14" class="text-center">
+          {{element.sifraNamjene}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="nacinKoristenja">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="14" style="text-align: center">
+          Način korištenja
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="14" class="text-center">
+          {{element.nacinKoristenja}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="oznakaVrstePlasmana">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="14" style="text-align: center">
+          Oznaka vrste plasmana
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="14" class="text-center">
+          {{element.oznakaVrstePlasmana}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="poredak">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="10" style="text-align: center">
+          Poredak
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="10" class="text-center">
+          {{element.poredak}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="action">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="9">
+
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="9">
+          <div class="example-button-row">
+            <table>
+              <tbody>
+              <tr>
+                <td>
+                  <button (click)="edit(element)" mat-icon-button color="primary"
+                          aria-label="Example icon-button with a heart icon">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </td>
+                <td>
+                  <button (click)="delete(element)" mat-icon-button color="warn"
+                          aria-label="Example icon-button with a heart icon">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+  </mat-card-content>
+
+</mat-card>

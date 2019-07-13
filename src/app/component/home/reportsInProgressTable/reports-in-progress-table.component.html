@@ -1,0 +1,148 @@
+<app-spinner  #spinnerReportsInProgress></app-spinner>
+
+<mat-card>
+  <mat-card-title class="borderless" style="padding:15px">
+    Izvještaji u radu
+    <strong>({{ numberReportsInProgress }})</strong>
+
+    <div class="buttons m-8-l p-16-t pull-right p-0 m-neg-8-t example-button-row">
+
+      <button mat-raised-button (click)="fetchReportsInProcess()">
+        <mat-icon class="md-24">refresh</mat-icon>
+        OSVJEŽI
+      </button>
+
+    </div>
+
+
+  </mat-card-title>
+
+  <mat-card-content class="mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource">
+
+      <ng-container matColumnDef="kpo">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="5" class="text-left">
+          KPO
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="5" class="text-left" (click)="open(element.id)">
+          {{element.kpo}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="20" class="text-left">
+          Naziv
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="20" class="text-left" (click)="open(element.id)">
+          {{element.name }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="5" style="text-align: left">
+          Status
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="5" style="text-align: left" (click)="open(element.id)">
+          <strong>
+            {{element.status=='CREATING'?'Kreiranje':''}}
+            {{element.status=='IN_PROGRESS'?'U radu':''}}
+            {{element.status=='LOCKED'?'Zakljucan':''}}
+            {{element.status=='ERROR'?'Greska':''}}
+          </strong>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="creationDate">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="10" style="text-align: left">
+          Datum kreiranja
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="10" style="text-align: left" (click)="open(element.id)">
+          <strong>
+            {{element.creationDateAsString }} <!-- | date:"dd MM yyyy" }}-->
+          </strong>        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="reportDate">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="10" style="text-align: left">
+          Datum izloženosti
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="10" style="text-align: left" (click)="open(element.id)">
+          <strong>
+            {{element.reportDateAsString }} <!--| date:"dd MM yyyy"}}-->
+          </strong>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="exposureView">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="15" style="text-align: center">
+          Vrsta prikaza izloženosti
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="15" style="text-align: center" (click)="open(element.id)">
+          {{element.exposureView}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="logs">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="10.66" style="text-align: center">
+          Logovi
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="10.66" style="text-align: center">
+          <button mat-raised-button color="primary" (click)="showLogs(element.id)">
+            <strong>
+              Prikaži
+            </strong>
+          </button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="owner">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="10.66" style="text-align: left">
+          Vlasnik
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="10.66" style="text-align: left" (click)="open(element.id)">
+            {{element.owner}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="orgJed">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="10.66" style="text-align: left">
+          Org jedinica
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="10.66" style="text-align: left" (click)="open(element.id)">
+          {{element.orgJed}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="3">
+
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="3">
+          <div class="example-button-row">
+            <table>
+              <tbody>
+              <tr>
+                <td>
+                  <button *ngIf="! element.isLocked" (click)="remove(element)" mat-icon-button color="warn"
+                          aria-label="Example icon-button with a heart icon">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+  </mat-card-content>
+
+</mat-card>

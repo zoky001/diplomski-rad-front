@@ -1,0 +1,48 @@
+.example-fill-remaining-space {
+  /* This fills the remaining space, by using flexbox.
+     Every toolbar row uses a flexbox row layout. */
+  flex: 1 1 auto;
+}
+
+
+.smallButtonWithIcon {
+
+  max-height: 30px;
+  max-width: 4px;
+  padding-top: 4px;
+
+}
+
+
+.smallIconOnButton {
+
+  margin-left: -12px;
+
+}
+
+.left-divider {
+  border-left: 1px solid #eceaea;
+}
+
+
+.right-divider {
+  border-right: 1px solid #eceaea;
+}
+
+.example-card {
+  max-width: 400px;
+}
+
+.container-1600 {
+  width: 95%;
+}
+
+.example-header-image {
+  background-image: url('https://material.angular.io/assets/img/examples/shiba1.jpg');
+  background-size: cover;
+}
+
+.example-button-row button,
+.example-button-row a {
+  margin-right: 8px;
+}

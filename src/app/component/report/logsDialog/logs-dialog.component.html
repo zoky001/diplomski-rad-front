@@ -1,0 +1,46 @@
+<form>
+
+  <div style="width: 800px; max-height: 80vh">
+    <h2 matDialogTitle class="paper-font-title">Logovi</h2>
+    <mat-dialog-content>
+
+
+      <div class="data-table spinner-container" [class.scrollable]="logs.length > 5">
+        <app-spinner #spinner ></app-spinner>
+
+        <div class="data-table-header bg-color-secondary border-primary-1-t relative">
+          <div class="row full-width">
+            <div class="col-xs-1 header-column">Rbr</div>
+            <div class="col-xs-11 header-column">Log</div>
+          </div>
+        </div>
+
+        <mat-list no-border class="data-table-body">
+          <mat-list-item *ngFor="let log of logs;let rowIndex = index;" class="row full-width">
+            <p class="col-xs-1 body-column"> {{rowIndex + 1}} </p>
+            <p class="col-xs-11 body-column strong">{{ log }}</p>
+          </mat-list-item>
+        </mat-list>
+
+        <div *ngIf="logs.length === 0" class="no-data-message-container">
+          <p>Nema podataka za prikaz</p>
+        </div>
+      </div>
+
+    </mat-dialog-content>
+
+    <div mat-dialog-actions>
+      <div class="button-container">
+        <button class="mat-raised-button" red="" mat-dialog-close="" mat-raised-button="" sm="" type="button"
+                aria-label="Close dialog">
+          <mat-icon>clear</mat-icon>
+          <span class="mat-button-wrapper">Zatvori</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+
+      </div>
+    </div>
+  </div>
+</form>
+

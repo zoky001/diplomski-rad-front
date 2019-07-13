@@ -1,0 +1,81 @@
+<form [formGroup]="form">
+
+  <div style="width: 400px; max-height: 80vh">
+    <h2 matDialogTitle class="paper-font-title">Podatci o šifrarniku</h2>
+    <mat-dialog-content>
+
+      <table [style.width.%]="100">
+
+        <tr>
+          <td>
+
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <mat-select placeholder="Vrsta" formControlName="typeControl" tabindex="1">
+
+                <mat-option *ngFor="let type of codebooks" [value]="type"
+                            style="height: 26px; line-height: 1; padding:10px 16px">
+
+                  <span style="color: #333; font-weight:500">
+                    {{type==0?'INT_RATING':''}}
+                    {{type==1?'TAKER':''}}
+                    {{type==2?'RISK_CLASS':''}}
+                    {{type==3?'TYPE':''}}
+                    {{type==4?'RATING_RELATION':''}}
+                    {{type==5?'RATING_MODEL':''}}
+                  </span>
+
+                  <br>
+
+                </mat-option>
+              </mat-select>
+
+              <mat-error *ngIf="form.controls['typeControl'].errors?.required">
+                Error
+              </mat-error>
+
+
+            </mat-form-field>
+
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Naziv" formControlName="nameControl"
+                     tabindex="2">
+
+              <mat-error *ngIf="form.controls['nameControl'].errors?.required">
+                Polje je obavezno za unos
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+      </table>
+
+    </mat-dialog-content>
+    <div mat-dialog-actions>
+      <div class="button-container">
+        <button class="mat-raised-button" grey="" mat-dialog-close="" mat-raised-button="" sm="" type="button"
+                aria-label="Close dialog" tabindex="14">
+          <span class="mat-button-wrapper">Odustani</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+
+
+        <button class="mat-raised-button" mat-raised-button="" red="" sm="" type="submit" (click)="submitFormIfValid()"
+                tabindex="13">
+          <span class="mat-button-wrapper">Spremi</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+
+

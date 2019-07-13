@@ -1,0 +1,84 @@
+
+
+<mat-card class="m-4-t full-width" id="client-list" style="margin-top: -15px !important;" *ngIf="userService.getLoggedUserUser().canSearch">
+
+  <form [formGroup]="searchForm" (submit)="submitFormIfValid()">
+    <div class="row">
+
+      <div class="col-md-2">
+        <mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l">
+          <mat-select placeholder="Kriterij dohvata" formControlName="searchType">
+
+            <mat-option *ngFor="let type of searchTypes" [value]="type"
+                        style="height: 26px; line-height: 1; padding:10px 16px">
+                  <span
+                    style="color: #333; font-weight:500">{{type.label}}</span><br>
+              <!--<span style="color: #666; font-size: 11px;">{{banker.workplaceDescription}}</span> -->
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="col-md-2">
+        <mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l">
+          <input #data matInput ngDefaultControl formControlName="data"
+                 placeholder="{{selectedType.label}}" char-counter
+                 maxlength="30">
+          <mat-error *ngIf="searchForm.controls['data'].errors?.required">Polje je obavezno za unos</mat-error>
+          <mat-error *ngIf="searchForm.controls['data'].errors?.pattern">{{selectedType.validatorMessage}}</mat-error>
+          <mat-hint align="end">{{data.value.length}}/{{dataMaxLength}}</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <div class="col-md-1">
+        <mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l">
+          <input matInput [matDatepickerFilter]="myFilter" [matDatepicker]="date" [min]="minDate" [max]="maxDate"
+                 placeholder="Datum" formControlName="exposureDate" (focus)="date.open()" (click)="date.open()" readonly>
+          <mat-datepicker-toggle matSuffix [for]="date"></mat-datepicker-toggle>
+          <mat-datepicker #date disabled="false"
+                          (selectedChanged)="date.close()"></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="col-md-1">
+        <mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l">
+          <mat-select placeholder="Valuta" formControlName="currency">
+
+            <mat-option *ngFor="let type of currencies" [value]="type"
+                        style="height: 26px; line-height: 1; padding:10px 16px">
+                  <span
+                    style="color: #333; font-weight:500">{{type}}</span><br>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="col-md-4">
+        <mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l">
+          <mat-select placeholder="Vrsta prikaza izloženosti" formControlName="exposureViewOptions"
+                      matTooltip="{{getTooltipMessage()}}">
+
+            <mat-option *ngFor="let type of exposureViewOptionsValues" [value]="type"
+                        style="height: 26px; line-height: 1; padding:10px 16px">
+                  <span
+                    style="color: #333; font-weight:500">{{type}}</span><br>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+
+      <div class="buttons">
+        <button mat-raised-button color="primary" [disabled]="!searchForm.valid">
+          Dohvat
+        </button>
+      </div>
+    </div>
+  </form>
+
+</mat-card>
+
+
+
+
+

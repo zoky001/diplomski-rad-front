@@ -1,0 +1,141 @@
+<form [formGroup]="form">
+
+  <div style="width: 400px; max-height: 80vh">
+    <h2 matDialogTitle class="paper-font-title">Podatci o šifrarniku</h2>
+    <mat-dialog-content>
+
+      <table [style.width.%]="100">
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Aplikacija *" formControlName="aplikacijaControl"
+                     tabindex="1">
+
+              <mat-error *ngIf="form.controls['aplikacijaControl'].errors?.required">
+                Polje je obavezno za unos
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Vrsta oznaka posla" formControlName="vopControl"
+                     tabindex="2">
+
+              <mat-error *ngIf="form.controls['vopControl'].errors?.maxlength">
+                Maximalna dužina je 3 znaka
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Kategorija" formControlName="kategorijaControl"
+                     tabindex="3">
+
+              <mat-error *ngIf="form.controls['kategorijaControl'].errors?.maxlength">
+                Maximalna dužina je 2 znaka
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Šifra namjene" formControlName="sifraNamjeneControl"
+                     tabindex="4">
+
+              <mat-error *ngIf="form.controls['sifraNamjeneControl'].errors?.maxlength">
+                Maximalna dužina je 5 znakova
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Način korištenja" formControlName="nacinKoristenjaControl"
+                     tabindex="5">
+
+              <mat-error *ngIf="form.controls['nacinKoristenjaControl'].errors?.maxlength">
+                Maximalna dužina je 100 znakova
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Oznaka vrste plasmana *" formControlName="oznakaVrstePlasmanaControl"
+                     tabindex="6">
+
+              <mat-error *ngIf="form.controls['oznakaVrstePlasmanaControl'].errors?.required">
+                Polje je obavezno za unos
+              </mat-error>
+
+              <mat-error *ngIf="form.controls['oznakaVrstePlasmanaControl'].errors?.maxlength">
+                Maximalna dužina je 70 znakova
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Poredak *" formControlName="poredakControl"
+                     tabindex="7" type="number">
+
+              <mat-error *ngIf="form.controls['poredakControl'].errors?.required">
+                Polje je obavezno za unos
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+
+      </table>
+    </mat-dialog-content>
+    <div mat-dialog-actions>
+      <div class="button-container">
+        <button class="mat-raised-button" grey="" mat-dialog-close="" mat-raised-button="" sm="" type="button"
+                aria-label="Close dialog" tabindex="14">
+          <span class="mat-button-wrapper">Odustani</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+
+
+        <button class="mat-raised-button" mat-raised-button="" red="" sm="" type="submit" (click)="submitFormIfValid()"
+                tabindex="13">
+          <span class="mat-button-wrapper">Spremi</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+
+

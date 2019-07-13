@@ -1,0 +1,28 @@
+<h1 mat-dialog-title>
+  {{ title }}
+</h1>
+
+<mat-dialog-content #logoutModalDialog id="clientLogoutModal" modal class="p-16-b p-0-t p-0-r p-0-l" [ngStyle]="{'min-width': '25%'}">
+  <div>
+    <div class="m-0-b p-16-l p-16-r paper-font-subhead2">
+
+      <mat-icon>report_problem</mat-icon>
+
+      {{ question }}
+
+    </div>
+  </div>
+  <div class="buttons text-right">
+
+    <button style="margin-right: 5px" mat-raised-button color="warn" mat-dialog-close (click)="dialogRef.close(true)">
+      <mat-icon>check</mat-icon>
+      {{ yesButtonText}}
+    </button>
+
+    <button mat-raised-button color="primary" mat-dialog-close (click)="dialogRef.close(false)">
+      <mat-icon>clear</mat-icon>
+
+      {{ noButtonText}}
+    </button>
+  </div>
+</mat-dialog-content>

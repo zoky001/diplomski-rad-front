@@ -1,0 +1,99 @@
+<app-spinner  #spinner></app-spinner>
+
+<form [formGroup]="form">
+
+  <div style="width: 400px; max-height: 80vh">
+    <h2 matDialogTitle class="paper-font-title">Podatci o šifrarniku</h2>
+    <mat-dialog-content>
+
+      <table [style.width.%]="100">
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Aplikacija *" formControlName="aplikacijaControl"
+                     tabindex="1">
+
+              <mat-error *ngIf="form.controls['aplikacijaControl'].errors?.required">
+                Polje je obavezno za unos
+              </mat-error>
+
+              <mat-error *ngIf="form.controls['aplikacijaControl'].errors?.maxlength">Maximalna dužina je 30
+                znakova
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Oznaka limita" formControlName="oznLimitaControl"
+                     tabindex="2">
+
+              <mat-error *ngIf="form.controls['oznLimitaControl'].errors?.maxlength">
+                Maximalna dužina je 1 znak
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Šifra namjene" formControlName="sifraNamjeneControl" tabindex="4">
+
+              <mat-error *ngIf="form.controls['sifraNamjeneControl'].errors?.maxlength">
+                Maximalna dužina je 5 znakova
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Tip *" formControlName="tipControl"
+                     tabindex="4">
+
+              <mat-error *ngIf="form.controls['tipControl'].errors?.maxlength">
+                Maximalna dužina je 70 znakova
+              </mat-error>
+
+              <mat-error *ngIf="form.controls['tipControl'].errors?.required">
+                Polje je obavezno za unos
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+
+      </table>
+    </mat-dialog-content>
+    <div mat-dialog-actions>
+      <div class="button-container">
+        <button class="mat-raised-button" grey="" mat-dialog-close="" mat-raised-button="" sm="" type="button"
+                aria-label="Close dialog" tabindex="14">
+          <span class="mat-button-wrapper">Odustani</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+
+
+        <button class="mat-raised-button" mat-raised-button="" red="" sm="" type="submit" (click)="submitFormIfValid()"
+                tabindex="13">
+          <span class="mat-button-wrapper">Spremi</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+
+

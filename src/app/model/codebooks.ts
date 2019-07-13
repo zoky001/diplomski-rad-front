@@ -1,0 +1,4 @@
+export enum Codebooks {
+  INT_RATING, TAKER, RISK_CLASS, TYPE, RATING_RELATION, RATING_MODEL
+}
+

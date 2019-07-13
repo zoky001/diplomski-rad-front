@@ -1,0 +1,50 @@
+<app-spinner  #spinner></app-spinner>
+
+
+<mat-card>
+  <mat-card-title class="borderless" style="padding:15px">
+    Interest rate
+    <strong>({{ numberOfEntries }})</strong>
+
+    <div class="buttons m-8-l p-16-t pull-right p-0 m-neg-8-t example-button-row">
+
+      <button mat-raised-button (click)="refresh()">
+        <mat-icon class="md-24">refresh</mat-icon>
+        OSVJEŽI
+      </button>
+
+    </div>
+
+
+  </mat-card-title>
+
+
+  <mat-card-content class="mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource">
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="50">
+          Šifra
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="50">
+          {{element.name}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="50">
+          Opis
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="50">
+          {{element.description }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+  </mat-card-content>
+
+</mat-card>

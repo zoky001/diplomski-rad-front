@@ -1,0 +1,178 @@
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {MatDialog, MatDialogRef, MatPaginator, MatTableDataSource} from '@angular/material';
+import {RispoService} from '../../../service/rispo.service';
+import {TypeOfCreditEntry} from '../../../model/type-of-credit-entry';
+import {TypeOfCreditDialogComponent} from './type-of-credit-dialog.component';
+import {ConfirmDialogComponent} from '../../../shared/component/confirm-dialog/confirm-dialog.component';
+import {Constants} from '../../../model/Constants';
+import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
+import {SpinnerComponent} from '../../../shared/component/spinner-component/spinner.component';
+
+
+@Component({
+  selector: 'app-type-of-credit',
+  templateUrl: 'type-of-credit.component.html',
+  styleUrls: ['type-of-credit.component.scss']
+})
+export class TypeOfCreditComponent extends AbstractComponent implements OnInit {
+
+  logger: Logger = LoggerFactory.getLogger('TypeOfCreditComponent');
+
+  numberOfEntries: number;
+
+  dataSource = new MatTableDataSource<TypeOfCreditEntry>();
+
+  displayedColumns: any = [
+    'aplikacija',
+    'vrstaOznakaPosla',
+    'kategorija',
+    'sifraNamjene',
+    'nacinKoristenja',
+    'oznakaVrstePlasmana',
+    'poredak',
+    'action'
+  ];
+
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+
+  @ViewChild('spinner') spinner: SpinnerComponent;
+
+
+  private dialogRef: MatDialogRef<ConfirmDialogComponent>;
+
+
+  constructor(private rispoService: RispoService, public dialog: MatDialog) {
+    super();
+  }
+
+  ngOnInit(): void {
+    this.dataSource.paginator = this.paginator;
+
+    this.spinner.track([RispoService.CALL_TRACKING_TOKEN_TYPE_OF_CREDIT]);
+
+    this.loadEntries();
+
+    const sub1 = this.rispoService.refreshTypeOfCreditData.subscribe(() => {
+
+      this.refresh();
+
+    });
+
+    this.subscriptions.push(sub1);
+
+
+  }
+
+  refresh(): void {
+
+    this.loadEntries();
+
+  }
+
+  loadEntries(): void {
+
+    const sub = this.rispoService.getTypeOfCreditEntries().subscribe(responseData => {
+
+      this.dataSource.data = responseData;
+
+      this.numberOfEntries = responseData.length;
+
+    }, error1 => {
+
+      this.log('getTypeOfCreditEntries() ERROR: ' + error1);
+
+    });
+
+    this.subscriptions.push(sub);
+
+
+  }
+
+
+  delete(data: TypeOfCreditEntry): void {
+
+    this.dialogRef = this.dialog.open(ConfirmDialogComponent,
+      {
+        data: {
+          title: 'Brisanje šifrarničkog unosa',
+          question: 'Jeste li sigurni da želite obrisati odabrani šifrarnički unos?'
+        },
+        width: '25%'
+      });
+
+    this.dialogRef.afterClosed().subscribe(value => {
+
+      const result: boolean = value;
+
+      if (result) {
+
+        this.remove(data);
+
+      }
+
+    }, error1 => {
+
+      this.log('Greška prilikom otvaranja dialoga za potvrdu brisanja  sifrarnika. Klijent id: '
+        + data.id + ' ERROR-> ' + JSON.stringify(error1));
+
+    }, () => {
+
+    });
+
+
+  }
+
+  remove(codebookEntry: TypeOfCreditEntry): void {
+    try {
+      this.rispoService.deleteTypeOfCreditEntry(codebookEntry).subscribe(response => {
+
+
+          this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_SUCCESS.toString());
+
+
+          this.rispoService.refreshTypeOfCreditData.next();
+
+        },
+        error => {
+          this.rispoService.refreshTypeOfCreditData.next();
+
+          this.log('TYPE OF CREDIT ERROR:  ' + JSON.stringify(error));
+          this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_ERROR.toString());
+
+
+        });
+    } catch (e) {
+      this.rispoService.refreshTypeOfCreditData.next();
+      this.log('TYPE OF CREDIT ERROR:  ' + JSON.stringify(e));
+      this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_ERROR.toString());
+
+    }
+
+
+  }
+
+
+  edit(data: TypeOfCreditEntry): void {
+
+    this.dialog.open(TypeOfCreditDialogComponent,
+      {
+        data: {
+          typeOfCreditEntry: data,
+          isEditMode: true
+        }
+      });
+
+  }
+
+  add(): void {
+
+    this.dialog.open(TypeOfCreditDialogComponent,
+      {
+        data: {}
+      });
+
+  }
+
+
+}

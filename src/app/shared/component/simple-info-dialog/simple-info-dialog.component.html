@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>
+  {{ title }}
+</h2>
+
+<mat-dialog-content #logoutModalDialog id="clientLogoutModal" modal class="p-16-b p-0-t p-0-r p-0-l" [ngStyle]="{'min-width': '25%'}">
+  <div>
+    <div class="m-0-b p-16-l p-16-r paper-font-subhead2">
+
+      {{ content }}
+
+    </div>
+  </div>
+  <div class="buttons text-right">
+
+    <button class="pull-right btnClose" mat-raised-button color="primary" mat-dialog-close>
+      Zatvori
+    </button>
+
+  </div>
+</mat-dialog-content>
+

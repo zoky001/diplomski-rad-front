@@ -1,0 +1,36 @@
+
+
+<div class="col-md-5" [ngStyle]="{'border-left': '1px solid #eceaea' } ">
+
+<div class="row">
+
+  <div class="col-md-6">
+    <mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l "
+                    *ngIf="isVisible">
+
+      <mat-select placeholder="Dostupni datumi" style="font-weight: bold;" [formControl]="selectedDateControl">
+
+        <mat-optgroup *ngFor="let item of reportDateList" label="{{ item.reportDate }}">
+          <mat-option *ngFor="let creationDates of item.creationDatesArray" [value]="creationDates.groupID">
+
+                  <span style="color: #333; font-weight:500">
+                    {{creationDates.creationDate}}
+                  </span>
+
+          </mat-option>
+        </mat-optgroup>
+
+
+      </mat-select>
+    </mat-form-field>
+
+
+  </div>
+
+  <div class="col-md-6 example-button-row">
+    <button mat-raised-button (click)="onReportDateChange()" *ngIf="isVisible">
+      DOHVATI
+    </button>
+  </div>
+</div>
+</div>
