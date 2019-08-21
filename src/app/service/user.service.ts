@@ -4,8 +4,10 @@ import {BehaviorSubject, Observable} from 'rxjs';
 import {RispoService} from './rispo.service';
 import {WsKorisnikPOSifraData} from '../model/ws-korisnik-PO-sifra-data.';
 import {Group} from '../model/group';
-import {AppComponent} from '../app.component';
-import {Logger, LoggerFactory} from '../shared/logging/LoggerFactory';
+import {Logger, LoggerFactory} from '../core-module/service/logging/LoggerFactory';
+import {MessageBusService} from '../core-module/service/messaging/message-bus.service';
+import {Message} from '../core-module/service/messaging/model/Message';
+import {ReceiverID} from '../utilities/ReceiverID';
 
 
 @Injectable()
@@ -17,7 +19,8 @@ export class UserService {
 
 
   constructor(/*private userDataService: UserDataService,*/
-              private rispoService: RispoService) {
+              private rispoService: RispoService,
+              private messageBusService: MessageBusService) {
 
     this.laodLoggedUserData();
 
@@ -32,7 +35,7 @@ export class UserService {
 
   checkLoggedUserData(): void {
 
-    const username = 'Z003275';
+    const username = 'Z003275'; // todo  this.userDataService.getUserData().principal.username;
 
     if (this.getLoggedUserUser().username === null || this.getLoggedUserUser().username === '') {
       this.laodLoggedUserData();
@@ -74,7 +77,7 @@ export class UserService {
 
   private obtainUser(): Promise<User> {
 
-    const username = '';
+    const username = ''; // todo  this.userDataService.getUserData().principal.username;
 
     let promise: Promise<User>;
     if (username === null || username === '') {
@@ -176,6 +179,7 @@ export class UserService {
         } else {
           resolve(orgJedinice);
         }
+        // todo
 
 
         if (subscription !== undefined && subscription !== null) {
@@ -275,9 +279,12 @@ export class UserService {
 
   addMessage(title: string, body: string): void {
 
-    AppComponent.showMessage(title, body);
+
+    const message: Message = new Message(ReceiverID.RECEIVER_ID_SHOW_MESSAGE, {'title': title, 'message': body});
+    this.messageBusService.publish(message);
 
   }
+
 
   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  ERROR handling <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 

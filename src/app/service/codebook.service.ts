@@ -1,21 +1,25 @@
-import { Injectable, OnDestroy } from '@angular/core';
-import { RispoService } from './rispo.service';
-import { CodebookEntry } from '../model/codebook-entry';
-import {Logger, LoggerFactory} from '../shared/logging/LoggerFactory';
+import {Injectable, OnDestroy} from '@angular/core';
+import {RispoService} from './rispo.service';
+import {CodebookEntry} from '../model/codebook-entry';
+import {Logger, LoggerFactory} from '../core-module/service/logging/LoggerFactory';
 import {BehaviorSubject, Observable, Subscription} from 'rxjs';
+import {MessageBusService} from '../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../utilities/ReceiverID';
 
 
 @Injectable()
 export class CodebookService implements OnDestroy {
 
 
-  constructor(private rispoService: RispoService) {
+  constructor(private rispoService: RispoService,
+              private messageBusService: MessageBusService) {
 
-    const sub1 = this.rispoService.refreshCodebookData.subscribe(() => {
-
-      this.loadEntries();
-
+    const sub1 = messageBusService.subscribe(value => {
+      if (value.code === ReceiverID.RECEIVER_ID_REFRESH_CODEBOOK_DATA) {
+        this.loadEntries();
+      }
     });
+
 
     this.subscriptions.push(sub1);
 
@@ -56,6 +60,7 @@ export class CodebookService implements OnDestroy {
     const sub = this.rispoService.getCodebookEntries().subscribe(responseData => {
 
       responseData.forEach(item => {
+        // todo  this.codebooks.set(item.id, item);
 
         const codeBookType: String = item.type.toString();
 

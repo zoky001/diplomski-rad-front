@@ -1,14 +1,16 @@
 import {Inject} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 import {RispoService} from '../../../service/rispo.service';
-import {Constants} from '../../../model/Constants';
+import {Constants} from '../../../utilities/Constants';
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Validators} from '@angular/forms';
 import {PlasmanTypeEntry} from '../../../model/plasman-type-entry';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
-import {SpinnerComponent} from '../../../shared/component/spinner-component/spinner.component';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {SpinnerComponent} from '../../../shared-module/component/spinner-component/spinner.component';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 
 @Component({
@@ -56,13 +58,11 @@ export class PlasmanTypeDialogComponent extends AbstractComponent implements OnI
   tipControl: FormControl;
   tipValue: String;
 
-  @ViewChild('spinner') spinner: SpinnerComponent;
-
-
   constructor(@Inject(MAT_DIALOG_DATA) public data: any,
               private rispoService: RispoService,
-              public dialogRef: MatDialogRef<PlasmanTypeDialogComponent>) {
-    super();
+              public dialogRef: MatDialogRef<PlasmanTypeDialogComponent>,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
     this.plasmanTypeEntry = new PlasmanTypeEntry();
 
     if (data.plasmanTypeEntry !== undefined) {
@@ -153,13 +153,14 @@ export class PlasmanTypeDialogComponent extends AbstractComponent implements OnI
           }
 
 
-          this.rispoService.refreshPlacementTypeData.next();
-
+          // this.rispoService.refreshPlacementTypeData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_PLACEMENT_TYPE_DATA, true);
           this.dialogRef.close();
 
         },
         error => {
-          this.rispoService.refreshPlacementTypeData.next();
+          // this.rispoService.refreshPlacementTypeData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_PLACEMENT_TYPE_DATA, true);
 
           this.log('PLASAMAN TYPE ERROR ' + JSON.stringify(error));
 
@@ -172,7 +173,8 @@ export class PlasmanTypeDialogComponent extends AbstractComponent implements OnI
 
     } catch (e) {
 
-      this.rispoService.refreshPlacementTypeData.next();
+      // this.rispoService.refreshPlacementTypeData.next();
+      this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_PLACEMENT_TYPE_DATA, true);
 
       this.log('PLASAMAN TYPE ERROR ' + JSON.stringify(e));
       if (this.plasmanTypeEntry.id) {

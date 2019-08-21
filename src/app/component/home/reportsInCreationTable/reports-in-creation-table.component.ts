@@ -4,15 +4,17 @@ import {ClientData} from '../../../model/client-data';
 import {RispoService} from '../../../service/rispo.service';
 import {Group} from '../../../model/group';
 import {ReportStatus} from '../../../model/report-status';
-import {Constants} from '../../../model/Constants';
+import {Constants} from '../../../utilities/Constants';
 import {WorkingReportSearchFormComponent} from '../workingReportSearchForm/working-report-search-form.component';
 import {ReportsInProgressTableComponent} from '../reportsInProgressTable/reports-in-progress-table.component';
 import {UserService} from '../../../service/user.service';
-import {ConfirmDialogComponent} from '../../../shared/component/confirm-dialog/confirm-dialog.component';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
+import {ConfirmDialogComponent} from '../../../shared-module/component/confirm-dialog/confirm-dialog.component';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
 import {forkJoin, interval, Subscription} from 'rxjs';
-import {SpinnerComponent} from '../../../shared/component/spinner-component/spinner.component';
+import {SpinnerComponent} from '../../../shared-module/component/spinner-component/spinner.component';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 @Component({
   selector: 'app-reports-in-creation-table',
@@ -38,9 +40,6 @@ export class ReportsInCreationTableComponent extends AbstractComponent implement
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  @ViewChild('spinner') spinner: SpinnerComponent;
-
-
   private logs: Array<String>;
 
   private fatalErrorMsg: string;
@@ -54,8 +53,9 @@ export class ReportsInCreationTableComponent extends AbstractComponent implement
 
   constructor(private rispoService: RispoService,
               private userService: UserService,
-              public dialog: MatDialog) {
-    super();
+              public dialog: MatDialog,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
   }
 
   ngOnInit(): void {
@@ -71,7 +71,7 @@ export class ReportsInCreationTableComponent extends AbstractComponent implement
     this.subscriptions.push(sub);
 
 
-    const sub1 = this.rispoService.fetchReportsInCreation.subscribe(responseData => {
+    const sub1 = this.getMessage(ReceiverID.RECEIVER_ID_FETCH_REPORT_IN_CREATION).subscribe(responseData => {
 
       this.fetchReportsInCreation();
 
@@ -170,7 +170,7 @@ export class ReportsInCreationTableComponent extends AbstractComponent implement
 
                 this.fatalErrorMsg = 'Greska kod dohvata izvjestaja. Pokusajte ponovno!';
                 // todo this.addMessage('GREŠKA', this.fatalErrorMsg);
-              // todo obrisi  this.stopUpdatingReports();
+                // todo obrisi  this.stopUpdatingReports();
               }
             }
 
@@ -244,7 +244,8 @@ export class ReportsInCreationTableComponent extends AbstractComponent implement
 
     this.numberOfReportsInCreation = this.dataSource.data.length;
 
-    this.rispoService.fetchReportsInProcess.next();
+    // this.rispoService.fetchReportsInProcess.next();
+    this.sendMessage(ReceiverID.RECEIVER_ID_FETCH_REPORT_IN_PROCESS, true);
 
   }
 
@@ -315,14 +316,8 @@ export class ReportsInCreationTableComponent extends AbstractComponent implement
     this.rispoService.deleteGroup(group).subscribe(response => {
 
         if (response) {
-
-          let groupArray = this.rispoService.reportsInProgressData.getValue();
-
-          groupArray = groupArray.filter(obj => obj !== group);
-
-          this.rispoService.setReportsInProgressTableData(groupArray);
-
-          this.rispoService.fetchReportsInCreation.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_DELETE_REPORT_IN_PROGRESS_WITH_ID, group.id);
+          this.sendMessage(ReceiverID.RECEIVER_ID_FETCH_REPORT_IN_CREATION, true);
 
         } else {
 
@@ -341,12 +336,6 @@ export class ReportsInCreationTableComponent extends AbstractComponent implement
 
   }
 
-
-  fetchByClient(clientData: ClientData): void {
-
-    this.rispoService.fetchByClient.next(clientData);
-
-  }
 
   ngOnDestroy(): void {
 

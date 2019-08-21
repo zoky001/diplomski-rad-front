@@ -1,0 +1,190 @@
+<h2 matDialogTitle class="paper-font-title">Sumarna izloženost</h2>
+<mat-dialog-content>
+  <table class="full-width m-16-b border-primary-1" *ngIf="groupExposure">
+    <thead class="mat-header-row" style="display: table-header-group;">
+    <tr class="ui-widget-header" role="row">
+      <td colspan="5"><label style="text-align:center">
+        Credit Lines in THRK (inclusive of indirect Risks) according UCI Rules*)
+      </label></td>
+    </tr>
+    <tr>
+      <th></th>
+      <th>Previous</th>
+      <th>Change</th>
+      <th>Proposed</th>
+      <th>Balance</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>Cash (< 1 year) incl. Plafond</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.cashLess1Year.previous, groupExposure.cashLess1Year.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.cashLess1Year.change, groupExposure.cashLess1Year.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.cashLess1Year.proposed, groupExposure.cashLess1Year.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.cashLess1Year.balance, groupExposure.cashLess1Year.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Cash (> 1 year)</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.cashGreater1Year.previous, groupExposure.cashGreater1Year.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.cashGreater1Year.change, groupExposure.cashGreater1Year.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.cashGreater1Year.proposed, groupExposure.cashGreater1Year.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.cashGreater1Year.balance, groupExposure.cashGreater1Year.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Guarantees</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.guarantees.previous, groupExposure.guarantees.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.guarantees.change, groupExposure.guarantees.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.guarantees.proposed, groupExposure.guarantees.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.guarantees.balance, groupExposure.guarantees.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Credit Risk</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.creditRisk.previous, groupExposure.creditRisk.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.creditRisk.change, groupExposure.creditRisk.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.creditRisk.proposed, groupExposure.creditRisk.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.creditRisk.balance, groupExposure.creditRisk.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Issuer Risk</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.issuerRisk.previous, groupExposure.issuerRisk.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.issuerRisk.change, groupExposure.issuerRisk.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.issuerRisk.proposed, groupExposure.issuerRisk.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.issuerRisk.balance, groupExposure.issuerRisk.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Pre-Settlement/IFX/IRS</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.preSettlement.previous, groupExposure.preSettlement.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.preSettlement.change, groupExposure.preSettlement.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.preSettlement.proposed, groupExposure.preSettlement.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.preSettlement.balance, groupExposure.preSettlement.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Issuer Risk and Derivates</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.issuerRiskAndDerivates.previous, groupExposure.issuerRiskAndDerivates.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.issuerRiskAndDerivates.change, groupExposure.issuerRiskAndDerivates.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.issuerRiskAndDerivates.proposed, groupExposure.issuerRiskAndDerivates.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.issuerRiskAndDerivates.balance, groupExposure.issuerRiskAndDerivates.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Authority Level I UniCredit Group Total</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelIUniCreditGroupTotal.previous, groupExposure.authorityLevelIUniCreditGroupTotal.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelIUniCreditGroupTotal.change, groupExposure.authorityLevelIUniCreditGroupTotal.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelIUniCreditGroupTotal.proposed, groupExposure.authorityLevelIUniCreditGroupTotal.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelIUniCreditGroupTotal.balance, groupExposure.authorityLevelIUniCreditGroupTotal.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>thereof unsecured portion **)</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortion.previous, groupExposure.thereofUnsecuredPortion.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortion.change, groupExposure.thereofUnsecuredPortion.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortion.proposed, groupExposure.thereofUnsecuredPortion.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortion.balance, groupExposure.thereofUnsecuredPortion.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>thereof hedged by CDS</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofHedgedByCDS.previous, groupExposure.thereofHedgedByCDS.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofHedgedByCDS.change, groupExposure.thereofHedgedByCDS.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofHedgedByCDS.proposed, groupExposure.thereofHedgedByCDS.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofHedgedByCDS.balance, groupExposure.thereofHedgedByCDS.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>thereof committed</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofCommited.previous, groupExposure.thereofCommited.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofCommited.change, groupExposure.thereofCommited.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofCommited.proposed, groupExposure.thereofCommited.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofCommited.balance, groupExposure.thereofCommited.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    </tbody>
+  </table>
+  <p></p>
+  <table class="full-width m-16-b border-primary-1" *ngIf="groupExposure">
+    <thead  class="mat-header-row" style="display: table-header-group;">
+      <tr class="ui-widget-header" role="row">
+        <td colspan="5"><label style="text-align:center">
+          Credit Lines in THRK according BACA Rules
+        </label></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>Previous</td>
+        <td>Change</td>
+        <td>Proposed</td>
+        <td>Balance</td>
+      </tr>
+      </thead>
+    <tbody>
+    <tr>
+      <td>Credit Lines (see above)</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.creditLines.previous, groupExposure.creditLines.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.creditLines.change, groupExposure.creditLines.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.creditLines.proposed, groupExposure.creditLines.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.creditLines.balance, groupExposure.creditLines.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Permanent Holdings</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.permanentHoldings.previous, groupExposure.permanentHoldings.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.permanentHoldings.change, groupExposure.permanentHoldings.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.permanentHoldings.proposed, groupExposure.permanentHoldings.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.permanentHoldings.balance, groupExposure.permanentHoldings.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Equity and Bond Trading Limits</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.equityAndBondTradingLimits.previous, groupExposure.equityAndBondTradingLimits.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.equityAndBondTradingLimits.change, groupExposure.equityAndBondTradingLimits.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.equityAndBondTradingLimits.proposed, groupExposure.equityAndBondTradingLimits.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.equityAndBondTradingLimits.balance, groupExposure.equityAndBondTradingLimits.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Fiduciary Loans for Large Exposures</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.fiduciaryLoansForLargeExposures.previous, groupExposure.fiduciaryLoansForLargeExposures.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.fiduciaryLoansForLargeExposures.change, groupExposure.fiduciaryLoansForLargeExposures.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.fiduciaryLoansForLargeExposures.proposed, groupExposure.fiduciaryLoansForLargeExposures.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.fiduciaryLoansForLargeExposures.balance, groupExposure.fiduciaryLoansForLargeExposures.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Authority Level UniCredit Group Total</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelUniCreditGroupTotal.previous, groupExposure.authorityLevelUniCreditGroupTotal.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelUniCreditGroupTotal.change, groupExposure.authorityLevelUniCreditGroupTotal.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelUniCreditGroupTotal.proposed, groupExposure.authorityLevelUniCreditGroupTotal.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelUniCreditGroupTotal.balance, groupExposure.authorityLevelUniCreditGroupTotal.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>thereof unsecured portion</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortionII.previous, groupExposure.thereofUnsecuredPortionII.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortionII.change, groupExposure.thereofUnsecuredPortionII.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortionII.proposed, groupExposure.thereofUnsecuredPortionII.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortionII.balance, groupExposure.thereofUnsecuredPortionII.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>thereof hedged by CDS</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofHedgedByCDSII.previous, groupExposure.thereofHedgedByCDSII.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofHedgedByCDSII.change, groupExposure.thereofHedgedByCDSII.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofHedgedByCDSII.proposed, groupExposure.thereofHedgedByCDSII.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofHedgedByCDSII.balance, groupExposure.thereofHedgedByCDSII.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>Authority Level Bank Austria AG</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelBankAustria.previous, groupExposure.authorityLevelBankAustria.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelBankAustria.change, groupExposure.authorityLevelBankAustria.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelBankAustria.proposed, groupExposure.authorityLevelBankAustria.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.authorityLevelBankAustria.balance, groupExposure.authorityLevelBankAustria.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    <tr>
+      <td>thereof unsecured portion</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortionBankAustria.previous, groupExposure.thereofUnsecuredPortionBankAustria.previous, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortionBankAustria.change, groupExposure.thereofUnsecuredPortionBankAustria.change, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortionBankAustria.proposed, groupExposure.thereofUnsecuredPortionBankAustria.proposed, currency, amountFormatThousand) }}</td>
+      <td>{{ ExposureTableComponent.displayCurrencyInThousands(groupExposure.thereofUnsecuredPortionBankAustria.balance, groupExposure.thereofUnsecuredPortionBankAustria.balance, currency, amountFormatThousand) }}</td>
+    </tr>
+    </tbody>
+  </table>
+</mat-dialog-content>
+<div mat-dialog-actions>
+  <div class="button-container">
+    <button class="mat-raised-button" grey="" mat-dialog-close="" mat-raised-button="" sm="" type="button"
+            aria-label="Close dialog" tabindex="12">
+      <span class="mat-button-wrapper">Zatvori</span>
+      <div class="mat-button-ripple mat-ripple" matripple=""></div>
+      <div class="mat-button-focus-overlay"></div>
+    </button>
+  </div>
+</div>

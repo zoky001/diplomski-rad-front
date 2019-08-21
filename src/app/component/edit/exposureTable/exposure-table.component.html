@@ -1,0 +1,269 @@
+  <div mat-dialog-title>
+    <div class="row" style="height: 40px">
+      <div class="col-md-2">
+        <mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l" style="font-size: 18px;">
+          <mat-select style="font-size: 14px" placeholder="Prikaz iznosa" [(ngModel)]="amountFormatThousand" (change)="amountFormatThousandOnChange($event)">
+            <mat-option *ngFor="let item of amountFormatTypes" [value]="item.value">
+              <span style="color: #333; font-weight:500">
+                {{item.label}}
+              </span>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="col-md-2">
+        <mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l" style="font-size: 18px;">
+          <mat-select style="font-size: 14px" placeholder="Prikaz stupaca" [(ngModel)]="selecedColumns" (selectionChange)="showColumns()" multiple>
+            <mat-option *ngFor="let col of selectColumnsNames" [value]="col.value">{{col.label}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="col-md-5 example-button-row">
+        <button mat-raised-button color="primary" (click)="prikaziKamiNkOnClick()">{{btnKamNakText}}</button>
+        <button mat-raised-button color="primary" (click)="groupExposureDialogShow()">IZLOŽENOST GRUPE</button>
+      </div>
+      <div class="col-md-3">
+        <div class="buttons m-8-l p-16-t pull-right">
+          <button mat-raised-button color="primary" *ngIf="showGroupingButton()" (click)="groupSelectedExposures()">GRUPIRAJ</button>
+          <button mat-raised-button color="primary" *ngIf="showGroupingButton()" style="margin-left: -5px;" [matMenuTriggerFor]="groupExposuresRowMenu">
+            <mat-icon [ngClass]="{'smallIconOnButton': true }">arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #groupExposuresRowMenu="matMenu">
+            <button mat-menu-item w-icon xs raised white (click)="groupByCriteria(GroupingCriteria.LIMIT)">Po broju limita</button>
+            <button mat-menu-item w-icon xs raised white (click)="groupByCriteria(GroupingCriteria.OKVIR)">Po broju okvira</button>
+            <button mat-menu-item w-icon xs raised white (click)="groupByCriteria(GroupingCriteria.UGOVOR)">Po broju ugovora</button>
+          </mat-menu>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div mat-dialog-content style="width: 100%">
+    <div class="" [ngStyle]="{'max-width': tableWidth()} ">
+      <table class="full-width m-16-b border-primary-1 table-scrollable">
+        <thead class="mat-header-row" style="display: table-header-group;">
+        <tr>
+          <th rowspan="3" class="p-8">#</th>
+          <th rowspan="3" class="p-8">Nb</th>
+          <th rowspan="3" class="p-8" *ngIf="showBrojLimitaCol">Broj limita</th>
+          <th rowspan="3" class="p-8" *ngIf="showBrojOkviraCol">Broj okvira</th>
+          <th rowspan="3" class="p-8" *ngIf="showBrojUgovoraCol">Broj ugovora</th>
+          <th rowspan="3" class="p-8" *ngIf="showBrojPartijeCol">Broj partije</th>
+          <th rowspan="3" class="p-8">Source</th>
+          <th colspan="13" class="p-8" style="text-align: center">UniCredit Group (amounts in {{(amountFormatThousand ? 'T' : '' ) + currency}})")</th>
+          <th colspan="5" class="p-8"></th>
+          <th rowspan="3" class="p-8" *ngIf="userService.getLoggedUserUser().canEditData && !group.isLocked"></th>
+        </tr>
+        <tr>
+          <th rowspan="2" class="p-8">Type of Credit, credit line (including Indirect Risks)</th>
+          <th rowspan="2" class="p-8">Tenor</th>
+          <th rowspan="2" class="p-8">Previous</th>
+          <th rowspan="2" class="p-8">Change</th>
+          <th rowspan="2" class="p-8">Proposed</th>
+          <th rowspan="2" class="p-8">Balance</th>
+          <th colspan="3" class="p-8" style="text-align: center">Condition</th>
+          <th rowspan="2" class="p-8" colspan="1">Collaterals and Covenants</th>
+          <th rowspan="2" class="p-8" colspan="1">Secured Previous</th>
+          <th rowspan="2" class="p-8" colspan="1">Secured Proposed</th>
+          <th rowspan="2" class="p-8" colspan="1">Secured Balance</th>
+          <th rowspan="2" class="p-8" colspan="1">< 1 year</th>
+          <th rowspan="2" class="p-8" colspan="1">Type</th>
+          <th rowspan="2" class="p-8" colspan="1">Committed</th>
+          <th rowspan="2" class="p-8" colspan="1">Taker</th>
+          <th rowspan="2" class="p-8" colspan="1">Risk Class</th>
+        </tr>
+        <tr>
+          <th>Int. Rate</th>
+          <th>Spread</th>
+          <th>Fees</th>
+        </tr>
+        </thead>
+        <tbody>
+        <ng-container *ngFor="let member of group.members">
+          <ng-container *ngFor="let exposure of member.exposures">
+            <tr  *ngIf="showExposuresSubTable(member)" [ngStyle]="{'background-color': getBackgroundColor(exposure)}">
+              <td class="p-8">
+                <mat-checkbox [(ngModel)]="exposure.selected" name="clientChecked"></mat-checkbox>
+              </td>
+              <td class="p-8">{{ showAllClients ? member.index : member.indexWithExposures }}</td>
+              <td class="p-8" *ngIf="showBrojLimitaCol">{{ !!!exposure.brojLimita ? '-' : exposure.brojLimita }}</td>
+              <td class="p-8" *ngIf="showBrojOkviraCol">{{ !!!exposure.brojOkvira ? '-' : exposure.brojOkvira }}</td>
+              <td class="p-8" *ngIf="showBrojUgovoraCol">{{ !!!exposure.brojUgovora ? '-' : exposure.brojUgovora }}</td>
+              <td class="p-8" *ngIf="showBrojPartijeCol">{{ !!!exposure.brojPartije ? '-' : exposure.brojPartije }}</td>
+              <td class="p-8">
+                <i *ngIf="isCutWarning(exposure)" class="fa fa-info-circle" style="margin-top: 2px; color: orange;"
+                   aria-hidden="true"></i>
+                <span *ngIf="isCutWarning(exposure)" matTooltip="Provjeriti/korigirati iznos zbog moguće razlike u tečaju!">{{ exposure.source }}</span>
+                <span *ngIf="!!!isCutWarning(exposure)">{{ exposure.source }}</span>
+              </td>
+              <td class="p-8 {{!!!exposure.typeOfCredit ? 'red-background' : ''}}">{{exposure.typeOfCredit}}
+              </td>
+              <td class="p-8 {{!!!exposure.tenor ? 'red-background' : ''}}">
+                {{!!!exposure.tenor ? '-' : exposure.getTenorForPrint() }}
+                {{ exposure.getTenorDate().getTime() < group.reportDate.getTime() ? ' overdue' : '' }}
+              </td>
+              <td class="p-8" style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(exposure.previousHrk,
+                exposure.previousEur, currency, amountFormatThousand) }}
+              </td>
+              <td class="p-8" style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(exposure.changeHrk, exposure.changeEur, currency, amountFormatThousand)
+                }}
+              </td>
+              <td class="p-8" style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(exposure.proposedHrk,
+                exposure.proposedEur, currency, amountFormatThousand) }}
+              </td>
+              <td class="p-8" style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(exposure.balanceHrk,
+                exposure.balanceEur, currency, amountFormatThousand) }}
+              </td>
+              <td class="p-8">
+            <span *ngIf="!!exposure.interestRate"
+                  matTooltip="{{exposure.interestRate.name + ' = ' + exposure.interestRate.description}}">{{ !!!exposure.intRate ? '-' : exposure.intRate }}</span>
+                <span *ngIf="!!!exposure.interestRate">{{ !!!exposure.intRate ? '-' : exposure.intRate }}</span>
+              </td>
+              <td class="p-8" style="text-align: right">{{!!!exposure.spread ? '-' : exposure.spread.toFixed(2)+'%'}}</td>
+              <td class="p-8">{{!!!exposure.fees ? '-' : exposure.fees}}</td>
+              <td class="p-8">{{ exposure.getCollaterals() }}</td>
+              <td class="p-8" style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(exposure.securedPreviousHrk,
+                exposure.securedPreviousEur, currency, amountFormatThousand) }}
+              </td>
+              <td class="p-8" style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(exposure.securedProposedHrk,
+                securedProposedEur, currency, amountFormatThousand) }}
+              </td>
+              <td class="p-8" style="text-align: right">u
+              </td>
+              <td class="p-8 {{exposure.isLessThanYearEmpty() ? 'red-background' : ''}}">
+                {{exposure.getLessThanYearAsString()}}
+              </td>
+              <td class="p-8">{{!!exposure.plasmanType ? exposure.plasmanType.name : ''}}</td>
+              <td class="p-8">{{exposure.commited ? 'Y' : 'N'}}</td>
+              <td class="p-8">{{!!exposure.taker ? exposure.taker.name : ''}}</td>
+              <td class="p-8">{{!!exposure.riskClass ? exposure.riskClass.name : ''}}</td>
+              <td class="p-8" *ngIf="userService.getLoggedUserUser().canEditData && !group.isLocked">
+                <button xs [matMenuTriggerFor]="exposureRowMenu" [ngClass]="showUngroupButton(exposure) ? 'blue' : ''">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #exposureRowMenu="matMenu">
+                  <button mat-menu-item w-icon xs raised white matTooltip="Uredi" (click)="showEditDialog(member, exposure)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-menu-item w-icon xs raised white matTooltip="Obriši" (click)="showDeleteDialog(member, exposure)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                  <button mat-menu-item w-icon xs raised white matTooltip="Odgrupiraj" *ngIf="showUngroupButton(exposure)" (click)="ungroupExposure(exposure, member.id)">
+                    <mat-icon>group_work</mat-icon>
+                  </button>
+                </mat-menu>
+              </td>
+            </tr>
+          </ng-container>
+          <ng-container *ngIf="showExposuresSubTable(member)">
+            <tr class="mat-header-row" style="display: table-row;">
+              <td colspan="2" style="text-align: center">{{!!showAllClients ? member.index : member.indexWithExposures}}</td>
+              <td [attr.colspan]="adjustColspan(7)">Total</td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.total.previousHrk, member.total.previousEur, currency, amountFormatThousand) }}</td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.total.changeHrk, member.total.changeEur, currency, amountFormatThousand) }}</td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.total.proposedHrk, member.total.proposedEur, currency, amountFormatThousand) }}</td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.total.balanceHrk, member.total.balanceEur, currency, amountFormatThousand) }}</td>
+              <td colspan="4"></td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.total.securedPreviousHrk, member.total.securedPreviousEur, currency, amountFormatThousand) }}</td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.total.securedProposedHrk, member.total.securedProposedEur, currency, amountFormatThousand) }}</td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.total.securedBalanceHrk, member.total.securedBalanceEur, currency, amountFormatThousand) }}</td>
+              <td colspan="5"></td>
+              <td></td>
+            </tr>
+            <tr *ngIf="showNakKam" class="mat-header-row" style="display: table-row;">
+              <td colspan="2" style="text-align: center">{{!!showAllClients ? member.index : member.indexWithExposures}}</td>
+              <td [attr.colspan]="adjustColspan(7)">Kamate</td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.intRateHRK, member.intRateEUR, currency, amountFormatThousand) }}</td>
+              <td></td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.intRateHRK, member.intRateEUR, currency, amountFormatThousand) }}</td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.intRateHRK, member.intRateEUR, currency, amountFormatThousand) }}</td>
+              <td colspan="12"></td>
+              <td></td>
+            </tr>
+            <tr *ngIf="showNakKam" class="mat-header-row" style="display: table-row;">
+              <td colspan="2" style="text-align: center">{{!!showAllClients ? member.index : member.indexWithExposures}}</td>
+              <td [attr.colspan]="adjustColspan(7)">Naknade</td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.feesHRK, member.feesEUR, currency, amountFormatThousand) }}</td>
+              <td></td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.feesHRK, member.feesEUR, currency, amountFormatThousand) }}</td>
+              <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(member.feesHRK, member.feesEUR, currency, amountFormatThousand) }}</td>
+              <td colspan="12"></td>
+              <td></td>
+            </tr>
+            <tr *ngIf="showNakKam" class="mat-header-row" style="display: table-row;">
+              <td colspan="2" style="text-align: center">{{!!showAllClients ? member.index : member.indexWithExposures}}</td>
+              <td [attr.colspan]="adjustColspan(7)">Total + Kamate + Naknade</td>
+              <td style="text-align: right">
+                {{ ExposureTableComponent.displayCurrencyInThousands(member.feesHRK + member.intRateHRK + member.total.previousHrk, member.feesEUR+member.total.previousEur + member.intRateEUR, currency, amountFormatThousand) }}
+              </td>
+              <td></td>
+              <td style="text-align: right">
+                {{ ExposureTableComponent.displayCurrencyInThousands(member.feesHRK + member.intRateHRK + member.total.previousHrk, member.feesEUR+member.total.previousEur + member.intRateEUR, currency, amountFormatThousand) }}
+              </td>
+              <td style="text-align: right">
+                {{ ExposureTableComponent.displayCurrencyInThousands(member.feesHRK + member.intRateHRK + member.total.previousHrk, member.feesEUR+member.total.previousEur + member.intRateEUR, currency, amountFormatThousand) }}
+              </td>
+              <td colspan="12"></td>
+              <td></td>
+            </tr>
+          </ng-container>
+        </ng-container>
+        <tr class="mat-header-row" style="display: table-row;">
+          <td [attr.colspan]="adjustColspan(9)">Total</td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.previousHrk, group.total.previousEur, currency, amountFormatThousand) }}</td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.changeHrk, group.total.changeEur, currency, amountFormatThousand) }}</td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.proposedHrk, group.total.proposedEur, currency, amountFormatThousand) }}</td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.balanceHrk, group.total.balanceEur, currency, amountFormatThousand) }}</td>
+          <td colspan="4"></td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.securedPreviousHrk, group.total.securedPreviousEur, currency, amountFormatThousand) }}</td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.securedProposedHrk, group.total.securedProposedEur, currency, amountFormatThousand) }}</td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.securedBalanceHrk, group.total.securedBalanceEur, currency, amountFormatThousand) }}</td>
+          <td colspan="5"></td>
+          <td></td>
+        </tr>
+        <tr class="mat-header-row" style="display: table-row;">
+          <td [attr.colspan]="adjustColspan(9)">Kamate</td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.intRateHRK, group.total.intRateEUR, currency, amountFormatThousand) }}</td>
+          <td style="text-align: right"></td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.intRateHRK, group.total.intRateEUR, currency, amountFormatThousand) }}</td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.intRateHRK, group.total.intRateEUR, currency, amountFormatThousand) }}</td>
+          <td colspan="12"></td>
+          <td></td>
+        </tr>
+        <tr class="mat-header-row" style="display: table-row;">
+          <td [attr.colspan]="adjustColspan(9)">Naknade</td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.feesHRK, group.total.feesEUR, currency, amountFormatThousand) }}</td>
+          <td style="text-align: right"></td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.feesHRK, group.total.feesEUR, currency, amountFormatThousand) }}</td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.feesHRK, group.total.feesEUR, currency, amountFormatThousand) }}</td>
+          <td colspan="12"></td>
+          <td></td>
+        </tr>
+        <tr class="mat-header-row" style="display: table-row;">
+          <td [attr.colspan]="adjustColspan(9)">Total + Kamate + Naknade</td>
+          <td style="text-align: right">
+            {{ ExposureTableComponent.displayCurrencyInThousands(group.feesHRK + group.intRateHRK + group.total.previousHrk, group.feesEUR + group.total.previousEur + group.intRateEUR, currency, amountFormatThousand) }}
+          </td>
+          <td style="text-align: right">{{ ExposureTableComponent.displayCurrencyInThousands(group.total.changeHrk, group.total.changeEur, currency, amountFormatThousand) }}</td>
+          <td style="text-align: right">
+            {{ ExposureTableComponent.displayCurrencyInThousands(group.feesHRK + group.intRateHRK + group.total.previousHrk, group.feesEUR + group.total.previousEur + group.intRateEUR, currency, amountFormatThousand) }}
+          </td>
+          <td style="text-align: right">
+            {{ ExposureTableComponent.displayCurrencyInThousands(group.feesHRK + group.intRateHRK + group.total.balanceHrk, group.feesEUR + group.total.balanceEur + group.intRateEUR, currency, amountFormatThousand) }}
+          </td>
+          <td colspan="12"></td>
+          <td></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<div mat-dialog-actions>
+  <div class="button-container">
+    <button mat-raised-button color="warn" mat-dialog-close=""
+            aria-label="Close dialog" tabindex="12">
+      <span class="mat-button-wrapper">Zatvori</span>
+      <div class="mat-button-ripple mat-ripple" matripple=""></div>
+      <div class="mat-button-focus-overlay"></div>
+    </button>
+  </div>
+</div>

@@ -3,11 +3,13 @@ import {MatDialog, MatDialogRef, MatPaginator, MatTableDataSource} from '@angula
 import {RispoService} from '../../../service/rispo.service';
 import {TypeOfCreditEntry} from '../../../model/type-of-credit-entry';
 import {TypeOfCreditDialogComponent} from './type-of-credit-dialog.component';
-import {ConfirmDialogComponent} from '../../../shared/component/confirm-dialog/confirm-dialog.component';
-import {Constants} from '../../../model/Constants';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
-import {SpinnerComponent} from '../../../shared/component/spinner-component/spinner.component';
+import {ConfirmDialogComponent} from '../../../shared-module/component/confirm-dialog/confirm-dialog.component';
+import {Constants} from '../../../utilities/Constants';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {SpinnerComponent} from '../../../shared-module/component/spinner-component/spinner.component';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 
 @Component({
@@ -36,24 +38,21 @@ export class TypeOfCreditComponent extends AbstractComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  @ViewChild('spinner') spinner: SpinnerComponent;
-
-
   private dialogRef: MatDialogRef<ConfirmDialogComponent>;
 
 
-  constructor(private rispoService: RispoService, public dialog: MatDialog) {
-    super();
+  constructor(private rispoService: RispoService,
+              public dialog: MatDialog,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
   }
 
   ngOnInit(): void {
     this.dataSource.paginator = this.paginator;
 
-    this.spinner.track([RispoService.CALL_TRACKING_TOKEN_TYPE_OF_CREDIT]);
-
     this.loadEntries();
 
-    const sub1 = this.rispoService.refreshTypeOfCreditData.subscribe(() => {
+    const sub1 = this.getMessage(ReceiverID.RECEIVER_ID_REFRESH_TYPE_OF_CREDIT_DATA).subscribe(() => {
 
       this.refresh();
 
@@ -131,11 +130,13 @@ export class TypeOfCreditComponent extends AbstractComponent implements OnInit {
           this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_SUCCESS.toString());
 
 
-          this.rispoService.refreshTypeOfCreditData.next();
+          // this.rispoService.refreshTypeOfCreditData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_TYPE_OF_CREDIT_DATA, true);
 
         },
         error => {
-          this.rispoService.refreshTypeOfCreditData.next();
+          // this.rispoService.refreshTypeOfCreditData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_TYPE_OF_CREDIT_DATA, true);
 
           this.log('TYPE OF CREDIT ERROR:  ' + JSON.stringify(error));
           this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_ERROR.toString());
@@ -143,7 +144,9 @@ export class TypeOfCreditComponent extends AbstractComponent implements OnInit {
 
         });
     } catch (e) {
-      this.rispoService.refreshTypeOfCreditData.next();
+      // this.rispoService.refreshTypeOfCreditData.next();
+      this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_TYPE_OF_CREDIT_DATA, true);
+
       this.log('TYPE OF CREDIT ERROR:  ' + JSON.stringify(e));
       this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_ERROR.toString());
 

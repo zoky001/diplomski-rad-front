@@ -1,13 +1,15 @@
 import {Component, Inject} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 import {RispoService} from '../../../service/rispo.service';
-import {Constants} from '../../../model/Constants';
+import {Constants} from '../../../utilities/Constants';
 import {TypeOfCreditEntry} from '../../../model/type-of-credit-entry';
 import {OnInit} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Validators} from '@angular/forms';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 
 @Component({
@@ -65,8 +67,10 @@ export class TypeOfCreditDialogComponent extends AbstractComponent implements On
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
     private rispoService: RispoService,
-    public dialogRef: MatDialogRef<TypeOfCreditDialogComponent>) {
-    super();
+    public dialogRef: MatDialogRef<TypeOfCreditDialogComponent>,
+    private messageBusService: MessageBusService) {
+    super(messageBusService);
+
     this.typeOfCreditEntry = new TypeOfCreditEntry();
 
     if (data.typeOfCreditEntry !== undefined) {
@@ -173,10 +177,12 @@ export class TypeOfCreditDialogComponent extends AbstractComponent implements On
               this.addMessage(Constants.CODEBOOK_ADD.toString(), Constants.CODEBOOK_ADD_SUCCESS.toString());
 
             }
-            this.rispoService.refreshTypeOfCreditData.next();
+            // this.rispoService.refreshTypeOfCreditData.next();
+            this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_TYPE_OF_CREDIT_DATA, true);
 
           } else {
-            this.rispoService.refreshTypeOfCreditData.next();
+            // this.rispoService.refreshTypeOfCreditData.next();
+            this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_TYPE_OF_CREDIT_DATA, true);
 
             if (this.typeOfCreditEntry.id) {
               this.addMessage(Constants.CODEBOOK_UPDATE.toString(), Constants.CODEBOOK_UPDATE_ERROR.toString());
@@ -191,7 +197,8 @@ export class TypeOfCreditDialogComponent extends AbstractComponent implements On
 
         },
         error => {
-          this.rispoService.refreshTypeOfCreditData.next();
+          // this.rispoService.refreshTypeOfCreditData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_TYPE_OF_CREDIT_DATA, true);
 
           if (this.typeOfCreditEntry.id) {
             this.addMessage(Constants.CODEBOOK_UPDATE.toString(), Constants.CODEBOOK_UPDATE_ERROR.toString());
@@ -205,7 +212,8 @@ export class TypeOfCreditDialogComponent extends AbstractComponent implements On
 
       this.subscriptions.push(sub);
     } catch (e) {
-      this.rispoService.refreshTypeOfCreditData.next();
+      // this.rispoService.refreshTypeOfCreditData.next();
+      this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_TYPE_OF_CREDIT_DATA, true);
 
       if (this.typeOfCreditEntry.id) {
         this.addMessage(Constants.CODEBOOK_UPDATE.toString(), Constants.CODEBOOK_UPDATE_ERROR.toString());

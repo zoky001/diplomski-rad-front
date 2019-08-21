@@ -1,19 +1,19 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {MatDialog, MatDialogRef, MatPaginator, MatTableDataSource} from '@angular/material';
-import {ClientData} from '../../../model/client-data';
 import {RispoService} from '../../../service/rispo.service';
 import {Group} from '../../../model/group';
 import {ReportStatus} from '../../../model/report-status';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LogsDialogComponent} from '../../report/logsDialog/logs-dialog.component';
 import {UserService} from '../../../service/user.service';
-import {ConfirmDialogComponent} from '../../../shared/component/confirm-dialog/confirm-dialog.component';
-import {Constants} from '../../../model/Constants';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
-import {PageMetaData} from '../../../shared/table/page-meta-data';
-import {SpinnerComponent} from '../../../shared/component/spinner-component/spinner.component';
+import {ConfirmDialogComponent} from '../../../shared-module/component/confirm-dialog/confirm-dialog.component';
+import {Constants} from '../../../utilities/Constants';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {SpinnerComponent} from '../../../shared-module/component/spinner-component/spinner.component';
 import {forkJoin} from 'rxjs';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 
 @Component({
@@ -28,20 +28,17 @@ export class ReportsInProgressTableComponent extends AbstractComponent implement
               private userService: UserService,
               public dialog: MatDialog,
               private router: Router,
-              private route: ActivatedRoute
-  ) {
-    super();
+              private route: ActivatedRoute,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
   }
 
   public static errorDialogVisible: boolean;
 
   logger: Logger = LoggerFactory.getLogger('ReportsInProgressTableComponent');
 
-  pageMetaData: PageMetaData;
-
   private reportsInProgress: Array<Group>;
 
-  numberReportsInProgress = 0;
 
   fatalErrorMsg: String = '';
 
@@ -69,8 +66,6 @@ export class ReportsInProgressTableComponent extends AbstractComponent implement
     this.dataSource.paginator = this.paginator;
 
 
-    this.spinner.track([RispoService.CALL_TRACKING_TOKEN_REPORTS_IN_PROGRESS]);
-
     this.fetchReportsInProcess();
 
     // fetchReportsInProcess if is changed logged user
@@ -81,7 +76,7 @@ export class ReportsInProgressTableComponent extends AbstractComponent implement
     this.subscriptions.push(sub);
 
 
-    sub = this.rispoService.fetchReportsInProcess.subscribe(() => {
+    sub = this.getMessage(ReceiverID.RECEIVER_ID_FETCH_REPORT_IN_PROCESS).subscribe(() => {
 
       this.fetchReportsInProcess();
 
@@ -89,9 +84,10 @@ export class ReportsInProgressTableComponent extends AbstractComponent implement
 
     this.subscriptions.push(sub);
 
-    sub = this.rispoService.reportsInProgressData.subscribe(responseData => {
 
-      this.numberReportsInProgress = responseData.length;
+    sub = this.getMessage<Group[]>(ReceiverID.RECEIVER_ID_REPORT_IN_PROGRESS_DATA).subscribe((responseData) => {
+
+      this.dataSource.data = responseData;
 
       this.resetClientComponent();
 
@@ -99,6 +95,20 @@ export class ReportsInProgressTableComponent extends AbstractComponent implement
 
     this.subscriptions.push(sub);
 
+
+    sub = this.getMessage<number>(ReceiverID.RECEIVER_ID_DELETE_REPORT_IN_PROGRESS_WITH_ID).subscribe((id) => {
+
+      let groupArray = this.dataSource.data;
+
+      groupArray = groupArray.filter(obj => obj.id !== id);
+
+      this.dataSource.data = groupArray;
+
+      this.resetClientComponent();
+
+    });
+
+    this.subscriptions.push(sub);
 
   }
 
@@ -148,13 +158,14 @@ export class ReportsInProgressTableComponent extends AbstractComponent implement
 
         if (response) {
 
-          let groupArray = this.rispoService.reportsInProgressData.getValue();
+          let groupArray = this.dataSource.data;
 
           groupArray = groupArray.filter(obj => obj !== group);
 
-          this.rispoService.setReportsInProgressTableData(groupArray);
           this.dataSource.data = groupArray;
-          this.rispoService.fetchReportsInCreation.next();
+
+          // this.rispoService.fetchReportsInCreation.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_FETCH_REPORT_IN_CREATION, true);
 
           this.addMessage(Constants.REPORTS_DELETE.toString(), Constants.REPORTS_DELETE_SUCCESS.toString());
 
@@ -259,9 +270,7 @@ export class ReportsInProgressTableComponent extends AbstractComponent implement
       if (this.userService.getLoggedUserUser().checkSecurity && this.userService.getLoggedUserUser().orgJeds.length === 0) {
         this.log('USER DATA: ' + this.userService.getLoggedUserUser());
         this.reportsInProgress = uRaduIliGreske; // return uRaduIliGreske;
-        this.rispoService.setReportsInProgressTableData(uRaduIliGreske);
         this.dataSource.data = uRaduIliGreske;
-        this.numberReportsInProgress = uRaduIliGreske.length;
 
       } else {
 
@@ -275,18 +284,14 @@ export class ReportsInProgressTableComponent extends AbstractComponent implement
 
           this.rispoService.findByStatusAndOrganizationalUnits(ReportStatus.IN_PROGRESS.valueOf(), date, substringedOrgJedKor).subscribe(response => {
             this.reportsInProgress = response;
-            this.rispoService.setReportsInProgressTableData(response);
             this.dataSource.data = response;
-            this.numberReportsInProgress = response.length;
           });
 
         } else {
 
           this.rispoService.findByStatusAndDate(ReportStatus.IN_PROGRESS.valueOf(), date).subscribe(response => {
             this.reportsInProgress = response;
-            this.rispoService.setReportsInProgressTableData(response);
             this.dataSource.data = response;
-            this.numberReportsInProgress = response.length;
 
           });
 
@@ -373,34 +378,12 @@ export class ReportsInProgressTableComponent extends AbstractComponent implement
 
   }
 
-  fetchByClient(clientData: ClientData): void {
-    this.rispoService.fetchByClient.next(clientData);
-  }
-
-
   /**
    * Reset search values to blank strings and reload all table data
    */
   resetClientComponent(): void {
 
     this.paginator.pageIndex = 0;
-
-  }
-
-
-  /**
-   * On every page change we set new PageMetaData object to
-   * newPaginationData stream and fetch new client list data for current page.
-   */
-  onPageChange($event: any): void {
-
-    this.pageMetaData = new PageMetaData();
-
-    this.pageMetaData.offset = $event.pageIndex;
-
-    this.pageMetaData.limit = $event.pageSize;
-
-    this.rispoService.setNewPaginationReportsInProgressTable(this.pageMetaData);
 
   }
 

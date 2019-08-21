@@ -1,10 +1,10 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {MatDialog, MatPaginator, MatTableDataSource} from '@angular/material';
 import {RispoService} from '../../../service/rispo.service';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
 import {InterestRateReference} from '../../../model/interest-rate-reference';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
-import {SpinnerComponent} from '../../../shared/component/spinner-component/spinner.component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
 
 @Component({
   selector: 'app-interest-rate',
@@ -26,18 +26,14 @@ export class InterestRateComponent extends AbstractComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  @ViewChild('spinner') spinner: SpinnerComponent;
-
-
   constructor(private rispoService: RispoService,
-              public dialog: MatDialog) {
-    super();
+              public dialog: MatDialog,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
   }
 
   ngOnInit(): void {
     this.dataSource.paginator = this.paginator;
-
-    this.spinner.track([RispoService.CALL_TRACKING_TOKEN_INTEREST_RATE]);
 
     this.loadEntries();
 

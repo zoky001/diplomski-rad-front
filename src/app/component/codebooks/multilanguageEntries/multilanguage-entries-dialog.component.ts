@@ -1,29 +1,33 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
-import { RispoService } from '../../../service/rispo.service';
-import { Constants } from '../../../model/Constants';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { CodebookEntry } from '../../../model/codebook-entry';
-import { Codebooks } from '../../../model/codebooks';
-import { AbstractComponent } from '../../../shared/component/abstarctComponent/abstract-component';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
+import {Component, Inject, OnInit} from '@angular/core';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
+import {RispoService} from '../../../service/rispo.service';
+import {Constants} from '../../../utilities/Constants';
+import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {CodebookEntry} from '../../../model/codebook-entry';
+import {Codebooks} from '../../../model/codebooks';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 
 @Component({
   selector: 'app-confirm-dialog',
   styles: [`
     button:hover {
-    box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
-    },
-    .numberParts {
-    width: 100px;
-}
+      box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+    }
 
-::ng-deep .mat-card-subtitle:not(:first-child),
-.mat-card-title:not(:first-child) {
-  margin-top: 0px;
-  background: white;
-}
+    ,
+    .numberParts {
+      width: 100px;
+    }
+
+    ::ng-deep .mat-card-subtitle:not(:first-child),
+    .mat-card-title:not(:first-child) {
+      margin-top: 0px;
+      background: white;
+    }
   `],
   templateUrl: 'multilanguage-entries-dialog.component.html'
 })
@@ -50,16 +54,16 @@ export class MultilanguageEntriesDialogComponent extends AbstractComponent imple
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: any,
               private rispoService: RispoService,
-              public dialogRef: MatDialogRef<MultilanguageEntriesDialogComponent>) {
-    super();
-
+              public dialogRef: MatDialogRef<MultilanguageEntriesDialogComponent>,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
     this.codebookEntry = new CodebookEntry();
     this.codebookEntry.type = Codebooks.INT_RATING;
 
 
     if (data.codebookEntry !== undefined) {
 
-     // this.codebookEntry = data.codebookEntry.clone();
+      // this.codebookEntry = data.codebookEntry.clone();
       this.codebookEntry = Object.assign({}, data.codebookEntry);
 
       if (data.codebookEntry.type === 'INT_RATING') {
@@ -153,15 +157,16 @@ export class MultilanguageEntriesDialogComponent extends AbstractComponent imple
 
           }
 
-          this.rispoService.refreshCodebookData.next();
-
+          // this.rispoService.refreshCodebookData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_CODEBOOK_DATA, true);
 
           this.dialogRef.close();
 
         },
         error => {
 
-          this.rispoService.refreshCodebookData.next();
+          // this.rispoService.refreshCodebookData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_CODEBOOK_DATA, true);
 
           if (this.codebookEntry.id) {
 
@@ -176,7 +181,8 @@ export class MultilanguageEntriesDialogComponent extends AbstractComponent imple
         });
     } catch (e) {
 
-      this.rispoService.refreshCodebookData.next();
+      // this.rispoService.refreshCodebookData.next();
+      this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_CODEBOOK_DATA, true);
 
       if (this.codebookEntry.id) {
 

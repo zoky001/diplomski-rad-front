@@ -1,10 +1,9 @@
 import {Injectable} from '@angular/core';
-import {Group, LoadGroupDataStatus} from '../model/group';
+import {Group} from '../model/group';
 import {Client} from '../model/client';
 import {Data} from '../model/data';
 import {SearchType} from '../model/SearchType';
 import {ClientSearchResponse} from '../model/client-search-response';
-import {ClientData} from '../model/client-data';
 import {ReportStatus} from '../model/report-status';
 import {TypeOfCreditEntry} from '../model/type-of-credit-entry';
 import {PlasmanTypeEntry} from '../model/plasman-type-entry';
@@ -29,18 +28,21 @@ import {IdentificationCommand} from '../model/command/identification-command';
 import {AzurirajIzlozenostClanaRispoServiceCommand} from '../model/command/azuriraj-izlozenost-clana-rispo-service-command';
 import {FindAllGroupCommand} from '../model/command/find-all-group-command';
 import {GenerateExcelReportCommand} from '../model/command/generate-excel-report-command';
-import {DocumentDownloadService} from '../shared/service/document-download.service';
+import {DocumentDownloadService} from '../core-module/service/download/document-download.service';
 import {GroupCommand} from '../model/groupCommand';
 import {Izlaz1} from '../model/izlaz-1';
 import {RispoIzlozenostSuma} from '../model/rispo-izlozenost-suma';
 import {WsKorisnikAutorizacijaCommand} from '../model/command/ws-korisnik-autorizacija-command';
 import {WsKorisnikAuthorizationData} from '../model/ws-korisnik-authorization-data.';
-import {PageMetaData} from '../shared/table/page-meta-data';
-import {BehaviorSubject, forkJoin, Observable, Subject, throwError} from 'rxjs';
-import {Logger, LoggerFactory} from '../shared/logging/LoggerFactory';
-import {HttpService} from './http.service';
+import {PageMetaData} from '../shared-module/table/page-meta-data';
+import {BehaviorSubject, forkJoin, Observable, throwError} from 'rxjs';
+import {Logger, LoggerFactory} from '../core-module/service/logging/LoggerFactory';
 import {catchError, map} from 'rxjs/operators';
-import {Utility} from '../shared/Utility';
+import {Utility} from '../utilities/Utility';
+import {HttpService} from '../core-module/service/http-service/http.service';
+import {Message} from '../core-module/service/messaging/model/Message';
+import {MessageBusService} from '../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../utilities/ReceiverID';
 
 
 @Injectable()
@@ -48,22 +50,17 @@ export class RispoService {
 
 
   constructor(private httpService: HttpService,
-              /*private headerService: HeaderService,*/
+              private messageBus: MessageBusService,
               private documentDownloadService: DocumentDownloadService) {
     this.pageMetadata = new PageMetaData();
     this.pageMetadata.offset = 0;
     this.pageMetadata.limit = 10;
   }
 
+  private logger: Logger = LoggerFactory.getLogger('RispoService');
+
+
   static readonly CALL_TRACKING_TOKEN: string = 'RispoService';
-  static readonly CALL_TRACKING_TOKEN_REPORTS_IN_PROGRESS: string = 'REPORTS_IN_PROGRESS';
-  static readonly CALL_TRACKING_TOKEN_LOCKED_REPORTS: string = 'LOCKED_REPORTS';
-  static readonly CALL_TRACKING_TOKEN_LOGS_MODAL: string = 'LOGS_MODAL';
-  static readonly CALL_TRACKING_TOKEN_TYPE_OF_CREDIT: string = 'TYPE_OF_CREDIT';
-  static readonly CALL_TRACKING_TOKEN_PLACEMENT_TYPE: string = 'PLACEMENT_TYPE';
-  static readonly CALL_TRACKING_TOKEN_SAVE_PLACEMENT_TYPE: string = 'SAVE_PLACEMENT_TYPE';
-  static readonly CALL_TRACKING_TOKEN_CODEBOOK: string = 'CODEBOOK';
-  static readonly CALL_TRACKING_TOKEN_INTEREST_RATE: string = 'INTEREST_RATE';
 
 
   static GET_DATA = 'rispo/data';
@@ -130,7 +127,6 @@ export class RispoService {
 
   static GET_INTEREST_RATE_ENTRIES = 'interestRateReference/getEntries';
 
-  private logger: Logger = LoggerFactory.getLogger('RispoService');
 
   private pageMetadata: PageMetaData;
 
@@ -143,58 +139,6 @@ export class RispoService {
   private reportDetailsGroupMembersResponse$: BehaviorSubject<Array<Client>> = new BehaviorSubject<Array<Client>>(new Array<Client>());
   public reportDetailsGroupData: BehaviorSubject<Group> = new BehaviorSubject<Group>(new Group());
 
-
-  /**
-   *
-   * ReportsInProgressTable
-   *
-   */
-  private reportsInProgressResponse$: BehaviorSubject<Array<Group>> = new BehaviorSubject<Array<Group>>(new Array<Group>()); // Observable<ClientData>;
-  public reportsInProgressData: BehaviorSubject<Array<Group>> = new BehaviorSubject<Array<Group>>(new Array<Group>()); // Observable<ClientData>;
-
-
-  /**
-   * 'call' method loadGroupData() in 'ClientTableComponent'
-   */
-  public loadGroupData: Subject<{ id: string, status: LoadGroupDataStatus }> = new Subject<{ id: string, status: LoadGroupDataStatus }>();
-
-
-  /**
-   * 'call' method loadGroupData() in 'ClientTableComponent'
-   */
-  public fetchClient: Subject<{ searchValue: string }> = new Subject<{ searchValue: string }>();
-
-
-  /**
-   * 'call' method fetchByClient in 'ClientSearchFormComponent'
-   */
-  public fetchByClient: Subject<ClientData> = new Subject<ClientData>(); // Observable<ClientData>;
-
-  /**
-   * 'call' method fetchReportsInProcess in 'ReportsInProgressTableComponent'
-   */
-  public fetchReportsInProcess: Subject<void> = new Subject<void>(); // Observable<ClientData>;
-
-  /**
-   * 'call' method fetchReportsInCreation in 'ReportsInCreationTableComponent'
-   */
-  public fetchReportsInCreation: Subject<void> = new Subject<void>(); // Observable<ClientData>;
-
-  /**
-   * 'call' method refresh() in 'TypeOfCreditComponent'
-   */
-  public refreshTypeOfCreditData: Subject<void> = new Subject<void>(); // Observable<ClientData>;
-
-
-  /**
-   * 'call' method refresh() in 'PlacementTypeComponent'
-   */
-  public refreshPlacementTypeData: Subject<void> = new Subject<void>(); // Observable<ClientData>;
-
-  /**
-   * 'call' method refresh() in 'MultilanguageEntriesComponent' and LoadData() in codebook.service.ts
-   */
-  public refreshCodebookData: Subject<void> = new Subject<void>(); // Observable<ClientData>;
 
   /**
    * back service will return enums as strings
@@ -216,35 +160,6 @@ export class RispoService {
     return result;
   }
 
-  /**
-   * enum need to be sent as string
-   *
-   * @param enumName - enum name
-   */
-  public static reportStatusEnumToString(reportStatus: ReportStatus): string {
-    let result: string;
-
-    switch (reportStatus) {
-      case ReportStatus.CREATING:
-        result = 'CREATING';
-        break;
-      case ReportStatus.IN_PROGRESS:
-        result = 'IN_PROGRESS';
-        break;
-      case ReportStatus.LOCKED:
-        result = 'LOCKED';
-        break;
-      case ReportStatus.ERROR:
-        result = 'ERROR';
-        break;
-      case ReportStatus.DENIED:
-        result = 'DENIED';
-        break;
-    }
-
-    return result;
-
-  }
 
   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>          ReportDetails Screen Code          <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -299,7 +214,7 @@ export class RispoService {
    */
   getClientTableData_GroupMembers(): Observable<Array<Client>> {
 
-    //  return this.reportDetailsGroupMembersResponse$.map(responseData => responseData);
+    // todo return this.reportDetailsGroupMembersResponse$.map(responseData => responseData);
     return this.reportDetailsGroupMembersResponse$;
 
   }
@@ -601,7 +516,7 @@ export class RispoService {
         })
       }).pipe(
         map(response => {
-          return response.data;
+          return response;
         }),
         catchError(e => {
           return throwError(this.errorHandler(e));
@@ -637,7 +552,7 @@ export class RispoService {
         })
       }).pipe(
         map(response => {
-          return response.data;
+          return response;
         }),
         catchError(e => {
           return throwError(this.errorHandler(e));
@@ -903,7 +818,7 @@ export class RispoService {
     let trackingToken = '';
 
     if (isFromModal) {
-      trackingToken = RispoService.CALL_TRACKING_TOKEN_LOGS_MODAL;
+      trackingToken = RispoService.CALL_TRACKING_TOKEN;
     }
 
 
@@ -1021,7 +936,7 @@ export class RispoService {
 
     let trackingToken = RispoService.CALL_TRACKING_TOKEN;
     if (status === ReportStatus.IN_PROGRESS.valueOf()) {
-      trackingToken = RispoService.CALL_TRACKING_TOKEN_REPORTS_IN_PROGRESS;
+      trackingToken = RispoService.CALL_TRACKING_TOKEN;
     }
 
     const findByStatusAndOrganizationalUnitsGroupCommand: FindByStatusAndOrganizationalUnitsGroupCommand = new FindByStatusAndOrganizationalUnitsGroupCommand();
@@ -1054,6 +969,7 @@ export class RispoService {
 
     const trackingToken = RispoService.CALL_TRACKING_TOKEN;
 
+    // todo jel dobro da se šalje samo ID
     const groupNew: Group = new Group();
     groupNew.id = group.id;
 
@@ -1090,7 +1006,7 @@ export class RispoService {
 
     let trackingToken = RispoService.CALL_TRACKING_TOKEN;
     if (status === ReportStatus.IN_PROGRESS.valueOf()) {
-      trackingToken = RispoService.CALL_TRACKING_TOKEN_REPORTS_IN_PROGRESS;
+      trackingToken = RispoService.CALL_TRACKING_TOKEN;
     }
 
 
@@ -1163,7 +1079,7 @@ export class RispoService {
     let trackingToken = RispoService.CALL_TRACKING_TOKEN;
 
     if (status === ReportStatus.IN_PROGRESS) {
-      trackingToken = RispoService.CALL_TRACKING_TOKEN_REPORTS_IN_PROGRESS;
+      trackingToken = RispoService.CALL_TRACKING_TOKEN;
     } else if (status === ReportStatus.CREATING) {
       trackingToken = '';
     }
@@ -1673,7 +1589,7 @@ export class RispoService {
    */
   getTypeOfCreditEntries(): Observable<Array<TypeOfCreditEntry>> {
 
-    const trackingToken = RispoService.CALL_TRACKING_TOKEN_TYPE_OF_CREDIT;
+    const trackingToken = RispoService.CALL_TRACKING_TOKEN;
 
     try {
       return this.httpService.submitGetRequestAndReturnData<Array<TypeOfCreditEntry>>({
@@ -1695,7 +1611,7 @@ export class RispoService {
 
   deleteTypeOfCreditEntry(data: TypeOfCreditEntry): Observable<boolean> {
 
-    const trackingToken = RispoService.CALL_TRACKING_TOKEN_TYPE_OF_CREDIT;
+    const trackingToken = RispoService.CALL_TRACKING_TOKEN;
 
     try {
       return this.httpService.submitRequestAndReturnData<boolean>({
@@ -1747,7 +1663,7 @@ export class RispoService {
    */
   getPlacementTypeEntries(): Observable<Array<PlasmanTypeEntry>> {
 
-    const trackingToken = RispoService.CALL_TRACKING_TOKEN_PLACEMENT_TYPE;
+    const trackingToken = RispoService.CALL_TRACKING_TOKEN;
 
     return this.httpService.submitGetRequestAndReturnData<Array<PlasmanTypeEntry>>({
       serviceUrl: `${RispoService.GET_PLACEMENT_TYPE_ENTRIES}`,
@@ -1763,7 +1679,7 @@ export class RispoService {
 
   savePlacementTypeEntry(placement: PlasmanTypeEntry): Observable<boolean> {
 
-    const trackingToken = RispoService.CALL_TRACKING_TOKEN_SAVE_PLACEMENT_TYPE;
+    const trackingToken = RispoService.CALL_TRACKING_TOKEN;
 
 
     try {
@@ -1810,7 +1726,7 @@ export class RispoService {
    */
   getCodebookEntries(): Observable<Array<CodebookEntry>> {
 
-    const trackingToken = RispoService.CALL_TRACKING_TOKEN_CODEBOOK;
+    const trackingToken = RispoService.CALL_TRACKING_TOKEN;
 
     return this.httpService.submitGetRequestAndReturnData<Array<CodebookEntry>>({
       serviceUrl: `${RispoService.GET_CODEBOOK_ENTRIES}`,
@@ -1826,7 +1742,7 @@ export class RispoService {
 
   deleteCodebookEntry(codebookEntry: CodebookEntry): Observable<boolean> {
 
-    const trackingToken = RispoService.CALL_TRACKING_TOKEN_CODEBOOK;
+    const trackingToken = RispoService.CALL_TRACKING_TOKEN;
 
 
     return this.httpService.submitRequestAndReturnData<boolean>({
@@ -1866,7 +1782,7 @@ export class RispoService {
    */
   getInterestRateEntries(): Observable<Array<InterestRateReference>> {
 
-    const trackingToken = RispoService.CALL_TRACKING_TOKEN_INTEREST_RATE;
+    const trackingToken = RispoService.CALL_TRACKING_TOKEN;
 
     return this.httpService.submitGetRequestAndReturnData<Array<InterestRateReference>>({
       serviceUrl: `${RispoService.GET_INTEREST_RATE_ENTRIES}`,
@@ -1880,61 +1796,26 @@ export class RispoService {
 
   }
 
-  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>         Observables for all tables           <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-
-  /**
-   *
-   *
-   * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<    ReportsInProgressTable   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   *
-   * Method used to create custom datasource that is needed to show data in material table
-   */
-  getReportsInProgressTableData(): Observable<Array<Group>> {
-    /*return this.reportsInProgressResponse$.map(responseData => responseData);*/
-    return this.reportsInProgressResponse$;
-  }
-
-  /**
-   *
-   * ReportsInProgressTable
-   *
-   *
-   */
-  setReportsInProgressTableData(data: Array<Group>): void {
-    this.pageMetadata.offset = 0;
-    this.reportsInProgressData.next(data);
-    this.setNewPaginationReportsInProgressTable(this.pageMetadata);
-  }
-
-
-  /**
-   *
-   *
-   * ReportsInProgressTable
-   *
-   *
-   */
-  setNewPaginationReportsInProgressTable(pageMetaData: PageMetaData): void {
-    // let clientData = this.clientListData.getValue();
-    const start = pageMetaData.offset * pageMetaData.limit;
-    const end = start + pageMetaData.limit;
-    const data = this.reportsInProgressData.getValue().slice(start, end);
-    this.reportsInProgressResponse$.next(data);
-  }
-
 
   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HEADER CONFIG <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
   setTitle(title: String): void {
-    /*  const screenDescriptor = HeaderConfiguration.fromObject({'pageTitle': 'Rispo - ' + title});
+    /* todo const screenDescriptor = HeaderConfiguration.fromObject({'pageTitle': 'Rispo - ' + title});
     this.headerService.showDetailsHeader(screenDescriptor);*/
+    this.sendMessage(ReceiverID.RECEIVER_ID_SET_GROUP_TITLE, title);
   }
 
   setDafaultTitle(): void {
-    /*  const screenDescriptor = HeaderConfiguration.fromObject({'pageTitle': 'Rispo'});
+    /* todo const screenDescriptor = HeaderConfiguration.fromObject({'pageTitle': 'Rispo'});
     this.headerService.showDetailsHeader(screenDescriptor);*/
+    this.sendMessage(ReceiverID.RECEIVER_ID_SET_GROUP_TITLE, '');
+
+  }
+
+  protected sendMessage(code: string, data: any) {
+    const message: Message = new Message(code, data);
+    this.messageBus.publish(message);
   }
 
 

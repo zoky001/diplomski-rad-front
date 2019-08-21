@@ -1,0 +1,58 @@
+<form [formGroup]="form">
+
+  <div style="width: 400px; max-height: 80vh">
+    <h2 matDialogTitle class="paper-font-title"> Dodavanje klijenta </h2>
+    <mat-dialog-content>
+
+      <div class="row">
+
+        <mat-form-field style="width: 30% !important;" class="p-12-r p-12-b p-12-l">
+          <mat-select placeholder="Kriterij dohvata" formControlName="clientFetchTypeControl">
+
+            <mat-option *ngFor="let type of menuItems" [value]="type.value"
+                        style="height: 26px; line-height: 1; padding:10px 16px">
+                  <span
+                    style="color: #333; font-weight:500">{{type.label}}</span><br>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+
+        <mat-form-field style="width: 50% !important;" class="p-12-r p-12-b p-12-l">
+          <input #data matInput ngDefaultControl formControlName="clientFetchValueControl"
+                 char-counter>
+          <mat-error *ngIf="form.controls['clientFetchValueControl'].errors?.required">Polje je obavezno za unos</mat-error>
+          <mat-hint align="end">{{data.value.length}}/30</mat-hint>
+        </mat-form-field>
+
+
+      </div>
+
+    </mat-dialog-content>
+
+
+    <div mat-dialog-actions>
+      <div class="button-container">
+
+        <button mat-raised-button  mat-dialog-close=""  type="button"
+                aria-label="Close dialog" tabindex="12">
+          <span class="mat-button-wrapper">Odustani</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+
+
+        <button mat-raised-button  color="warn" type="submit" (click)="fetch()"
+                tabindex="10">
+          <span class="mat-button-wrapper">Dohvat</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+
+
+      </div>
+    </div>
+  </div>
+</form>
+
+

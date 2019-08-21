@@ -1,14 +1,14 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {AbstractComponent} from './shared/component/abstarctComponent/abstract-component';
-import {GeneralService} from './service/general-service';
+import {AbstractComponent} from './shared-module/component/abstarctComponent/abstract-component';
 import {MatDialog, MatDialogRef} from '@angular/material';
-import {SimpleInfoDialogComponent} from './shared/component/simple-info-dialog/simple-info-dialog.component';
+import {SimpleInfoDialogComponent} from './shared-module/component/simple-info-dialog/simple-info-dialog.component';
 import {UserService} from './service/user.service';
 import {RispoService} from './service/rispo.service';
 import {NavigationStart, Router} from '@angular/router';
-import {Constants} from './model/Constants';
-import {Logger, LoggerFactory} from './shared/logging/LoggerFactory';
-import {SpinnerComponent} from './shared/component/spinner-component/spinner.component';
+import {Logger, LoggerFactory} from './core-module/service/logging/LoggerFactory';
+import {SpinnerComponent} from './shared-module/component/spinner-component/spinner.component';
+import {MessageBusService} from './core-module/service/messaging/message-bus.service';
+import {ReceiverID} from './utilities/ReceiverID';
 
 @Component({
   selector: 'app-root',
@@ -20,12 +20,33 @@ export class AppComponent extends AbstractComponent implements OnDestroy, OnInit
 
   constructor(public userService: UserService,
               public rispoService: RispoService,
+              // todo  private headerService: HeaderService,
               public dialog: MatDialog,
-              private router: Router) {
-    super();
+              private router: Router,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
+    /* todo this.headerService.showDetailsHeader(screenDescriptor);*/
 
-    AppComponent.generalService.getMessage().subscribe(value => {
-      if (value.receiverId && value.receiverId === Constants.RECEIVER_ID_SHOW_MESSAGE) {
+    /* todo    AppComponent.generalService.getMessage().subscribe(value => {
+          if (value.receiverId && value.receiverId === Constants.RECEIVER_ID_SHOW_MESSAGE) {
+
+            if (!!!AppComponent.isMessageDialogOpen) {
+              AppComponent.isMessageDialogOpen = true;
+              this.dialogRef = this.dialog.open(SimpleInfoDialogComponent, {
+                data: {
+                  title: value.data.title,
+                  content: value.data.message
+                },
+                width: '25%'
+              });
+            }
+            this.dialogRef.afterClosed().subscribe(value1 => {
+              AppComponent.isMessageDialogOpen = false;
+            });
+          }
+        });*/
+    this.messageBusService.subscribe(value => {
+      if (value.code && value.code === ReceiverID.RECEIVER_ID_SHOW_MESSAGE) {
 
         if (!!!AppComponent.isMessageDialogOpen) {
           AppComponent.isMessageDialogOpen = true;
@@ -44,12 +65,16 @@ export class AppComponent extends AbstractComponent implements OnDestroy, OnInit
     });
   }
 
+  /*
+    static generalService: GeneralService = new GeneralService();
+  */
+  static isMessageDialogOpen: boolean;
+
 
   @ViewChild('spinner') spinner: SpinnerComponent;
 
-  static generalService: GeneralService = new GeneralService();
-  static isMessageDialogOpen: boolean;
-  title = 'diplomski-rad-rispo ';
+  title = '';
+
   logger: Logger = LoggerFactory.getLogger('ClientSearchFormComponent');
   selected: any;
   reportMenu: any = [
@@ -67,9 +92,11 @@ export class AppComponent extends AbstractComponent implements OnDestroy, OnInit
   private dialogRef: MatDialogRef<SimpleInfoDialogComponent>;
   public haveAnyFunction = false;
 
-  static showMessage(title: string, message: string): void {
-    AppComponent.generalService.sendMessage(Constants.RECEIVER_ID_SHOW_MESSAGE, {'title': title, 'message': message});
-  }
+  /* todo  static showMessage(title: string, message: string): void {
+
+      AppComponent.generalService.sendMessage(Constants.RECEIVER_ID_SHOW_MESSAGE, {'title': title, 'message': message});
+
+    }*/
 
   ngOnInit(): void {
 
@@ -93,6 +120,12 @@ export class AppComponent extends AbstractComponent implements OnDestroy, OnInit
     this.spinner.track([RispoService.CALL_TRACKING_TOKEN]);
 
     this.userService.checkLoggedUserData();
+
+    const sub = this.getMessage<string>(ReceiverID.RECEIVER_ID_SET_GROUP_TITLE).subscribe(value => {
+      this.title = value;
+    });
+
+    this.subscriptions.push(sub);
 
   }
 
@@ -148,7 +181,7 @@ export class AppComponent extends AbstractComponent implements OnDestroy, OnInit
 
     if (this.router.url.toString().indexOf('home') > 0 && text === 'home') {
 
-      AppComponent.generalService.sendMessage(Constants.RECEIVER_ID_REFRESH_HOME_COMPONENT, '');
+      this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_HOME_COMPONENT, '');
 
     }
 
@@ -159,7 +192,9 @@ export class AppComponent extends AbstractComponent implements OnDestroy, OnInit
 
     super.ngOnDestroy();
     this.userService.deleteLoggedUserData();
-    AppComponent.generalService = new GeneralService();
+    /* todo
+        AppComponent.generalService = new GeneralService();
+    */
 
   }
 

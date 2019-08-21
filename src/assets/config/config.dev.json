@@ -1,0 +1,13 @@
+{
+  "env": {
+    "name": "DEV"
+  },
+  "logging": {
+    "console": true,
+    "info": true,
+    "error": true,
+    "debug": true
+  },
+  "apiServer": "http://localhost:8082/"
+
+}

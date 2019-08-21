@@ -1,7 +1,7 @@
 import { Collateral } from './collateral';
 import { CodebookEntry } from './codebook-entry';
 import { InterestRateReference } from './interest-rate-reference';
-import { Constants } from './Constants';
+import { Constants } from '../utilities/Constants';
 
 
 export class Exposure {
@@ -59,6 +59,14 @@ export class Exposure {
 
   tenorDate: number;
   lessThanYearAsString: string;
+
+  intRateHRK: number;
+  intRateEUR: number;
+  creationDateAsString: string;
+  reportDateAsString: string;
+
+  feesHRK: number;
+  feesEUR: number;
 
   // logger: Logger;
 
@@ -182,6 +190,7 @@ export class Exposure {
     }
   }
 
+  // TODO tis should be cached
   getTenorDate(): Date {
     // this.logger.info(JSON.stringify(this));
 

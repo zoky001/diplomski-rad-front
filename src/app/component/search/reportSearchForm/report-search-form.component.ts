@@ -1,17 +1,18 @@
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { SearchType } from '../../../model/SearchType';
-import { Constants } from '../../../model/Constants';
-import { RispoService } from '../../../service/rispo.service';
-import { ReportStatus } from '../../../model/report-status';
-import { Group } from '../../../model/group';
-import { UserService } from '../../../service/user.service';
-import { MatDialog } from '@angular/material';
-import { SecurityService } from '../../../service/security.service';
-import { ClientSearchResponse } from '../../../model/client-search-response';
-import { AbstractComponent } from '../../../shared/component/abstarctComponent/abstract-component';
-import { GeneralService } from '../../../service/general-service';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
+import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {SearchType} from '../../../model/SearchType';
+import {Constants} from '../../../utilities/Constants';
+import {RispoService} from '../../../service/rispo.service';
+import {ReportStatus} from '../../../model/report-status';
+import {Group} from '../../../model/group';
+import {UserService} from '../../../service/user.service';
+import {MatDialog} from '@angular/material';
+import {SecurityService} from '../../../service/security.service';
+import {ClientSearchResponse} from '../../../model/client-search-response';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 
 @Component({
@@ -41,8 +42,8 @@ export class ReportSearchFormComponent extends AbstractComponent implements OnDe
               public userService: UserService,
               private securityService: SecurityService,
               public dialog: MatDialog,
-              public generalService: GeneralService) {
-    super();
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
 
   }
 
@@ -191,7 +192,7 @@ export class ReportSearchFormComponent extends AbstractComponent implements OnDe
 
       if (orgJed == null) {
         // this.rispoService.setReportsTableData(new Array<Group>());
-        this.generalService.sendMessage(Constants.RECEIVER_ID_REPORT_TABLE, new Array<Group>());
+        this.sendMessage(ReceiverID.RECEIVER_ID_REPORT_TABLE, new Array<Group>());
         return;
       } else {
 
@@ -203,7 +204,7 @@ export class ReportSearchFormComponent extends AbstractComponent implements OnDe
             this.log(response);
 
             // this.rispoService.setReportsTableData(response);
-            this.generalService.sendMessage(Constants.RECEIVER_ID_REPORT_TABLE, response);
+            this.sendMessage(ReceiverID.RECEIVER_ID_REPORT_TABLE, response);
 
 
           }); // END rispoService.findGroup
@@ -223,7 +224,7 @@ export class ReportSearchFormComponent extends AbstractComponent implements OnDe
             if (regNumber.length === 0) {
 
               // this.rispoService.setReportsTableData(new Array<Group>());
-              this.generalService.sendMessage(Constants.RECEIVER_ID_REPORT_TABLE, new Array<Group>());
+              this.sendMessage(ReceiverID.RECEIVER_ID_REPORT_TABLE, new Array<Group>());
               return;
 
             } else {
@@ -243,7 +244,7 @@ export class ReportSearchFormComponent extends AbstractComponent implements OnDe
                     // this.log(response);
 
                     // this.rispoService.setReportsTableData(responsefindGroup);
-                    this.generalService.sendMessage(Constants.RECEIVER_ID_REPORT_TABLE, responsefindGroup);
+                    this.sendMessage(ReceiverID.RECEIVER_ID_REPORT_TABLE, responsefindGroup);
 
 
                   }); // END rispoService.findGroup
@@ -255,7 +256,7 @@ export class ReportSearchFormComponent extends AbstractComponent implements OnDe
                     // this.log(response);
 
                     // this.rispoService.setReportsTableData(responsefindByKpoWithoutClients);
-                    this.generalService.sendMessage(Constants.RECEIVER_ID_REPORT_TABLE, responsefindByKpoWithoutClients);
+                    this.sendMessage(ReceiverID.RECEIVER_ID_REPORT_TABLE, responsefindByKpoWithoutClients);
 
                   }); // END rispoService.findGroup
 
@@ -306,7 +307,7 @@ export class ReportSearchFormComponent extends AbstractComponent implements OnDe
               // this.log(response);
 
               // this.rispoService.setReportsTableData(responseFindGroup);
-              this.generalService.sendMessage(Constants.RECEIVER_ID_REPORT_TABLE, responseFindGroup);
+              this.sendMessage(ReceiverID.RECEIVER_ID_REPORT_TABLE, responseFindGroup);
 
 
             }); // END rispoService.findGroup
@@ -352,7 +353,7 @@ export class ReportSearchFormComponent extends AbstractComponent implements OnDe
       // this.log(response);
 
       // this.rispoService.setReportsTableData(response);
-      this.generalService.sendMessage(Constants.RECEIVER_ID_REPORT_TABLE, response);
+      this.sendMessage(ReceiverID.RECEIVER_ID_REPORT_TABLE, response);
 
 
     }); // END rispoService.findGroup
@@ -367,7 +368,8 @@ export class ReportSearchFormComponent extends AbstractComponent implements OnDe
 
     try {
 
-      this.rispoService.fetchReportsInProcess.next();
+      // this.rispoService.fetchReportsInProcess.next();
+      this.sendMessage(ReceiverID.RECEIVER_ID_FETCH_REPORT_IN_PROCESS, true);
 
       this.clearSearchData();
 
@@ -381,7 +383,7 @@ export class ReportSearchFormComponent extends AbstractComponent implements OnDe
   ngOnDestroy(): void {
     super.ngOnDestroy();
     // this.rispoService.setReportsTableData(new Array<Group>());
-    this.generalService.sendMessage(Constants.RECEIVER_ID_REPORT_TABLE, new Array<Group>());
+    this.sendMessage(ReceiverID.RECEIVER_ID_REPORT_TABLE, new Array<Group>());
 
 
   }

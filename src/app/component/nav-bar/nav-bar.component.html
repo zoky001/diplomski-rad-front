@@ -1,0 +1,52 @@
+<!--<div class="appNavBar">-->
+
+<!--</div>-->
+
+<div class="appNavBar">
+  <mat-toolbar color="primary">
+
+    <mat-toolbar-row>
+      <span routerLink="home" style="cursor: pointer;">
+        Diplomski rad
+      </span>
+      <button mat-button [matMenuTriggerFor]="menu" *ngIf="userService.getLoggedUserUser().canSearch">
+        Izvještaj
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item *ngFor="let item of reportMenu" [value]="item.key" routerLink="{{item.route}}" (click)="navigateTo(item.route)">
+          {{item.label}}
+        </button>
+      </mat-menu>
+
+      <button mat-button [matMenuTriggerFor]="menu1" *ngIf="userService.getLoggedUserUser().canEditCodebooks">
+        Administracija
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #menu1="matMenu">
+        <button mat-menu-item *ngFor="let item of adminMenu" [value]="item.key" routerLink="{{item.route}}">
+          {{item.label}}
+        </button>
+      </mat-menu>
+
+      <button mat-button (click)="openManual()">
+        Upute
+      </button>
+
+      <!--<span>-->
+      <!--<app-available-dates></app-available-dates>-->
+
+      <!--</span>-->
+
+      <!--<span class="example-spacer"></span>-->
+      <!--<mat-icon class="example-icon" aria-hidden="false" aria-label="Example heart icon">favorite</mat-icon>-->
+      <!--<mat-icon class="example-icon" aria-hidden="false" aria-label="Example delete icon">delete</mat-icon>-->
+
+
+
+    </mat-toolbar-row>
+
+
+  </mat-toolbar>
+
+</div>

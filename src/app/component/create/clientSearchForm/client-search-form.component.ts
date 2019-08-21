@@ -1,7 +1,7 @@
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {SearchType} from '../../../model/SearchType';
-import {Constants} from '../../../model/Constants';
+import {Constants} from '../../../utilities/Constants';
 import {Data} from '../../../model/data';
 import {RispoService} from '../../../service/rispo.service';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -9,9 +9,10 @@ import {ClientSearchResponse} from '../../../model/client-search-response';
 import {ClientData} from '../../../model/client-data';
 import {MatDialog} from '@angular/material';
 import {UserService} from '../../../service/user.service';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {GeneralService} from '../../../service/general-service';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 
 @Component({
@@ -62,8 +63,8 @@ export class ClientSearchFormComponent extends AbstractComponent implements OnIn
               private router: Router,
               private route: ActivatedRoute,
               public dialog: MatDialog,
-              public generalService: GeneralService) {
-    super();
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
 
   }
 
@@ -93,13 +94,21 @@ export class ClientSearchFormComponent extends AbstractComponent implements OnIn
     this.checkBoxEnabled = true;
 
 
-    const sub1 = this.rispoService.fetchByClient.subscribe(clientData => {
+    /* todo neka sprobavam   const sub1 = this.rispoService.fetchByClient.subscribe(clientData => {
 
+         this.fetchByClient(clientData);
+
+       });
+
+       this.subscriptions.push(sub1);*/
+
+
+    const sub = this.getMessage<ClientData>(ReceiverID.RECEIVER_ID_FETCH_BY_CLIENT).subscribe(clientData => {
       this.fetchByClient(clientData);
-
     });
 
-    this.subscriptions.push(sub1);
+    this.subscriptions.push(sub);
+
 
     if (!this.searchForm) {
       this.searchForm = new FormGroup({
@@ -197,7 +206,7 @@ export class ClientSearchFormComponent extends AbstractComponent implements OnIn
 
       return currentDayInMonth === dayInEOM;
     }
-  };
+  }
 
   /**
    * get date on the last day of the month
@@ -317,7 +326,7 @@ export class ClientSearchFormComponent extends AbstractComponent implements OnIn
 
           // this.log('Primljeni podatci nkaon filtera: ' + JSON.stringify(this.clients));
           // this.rispoService.setTableData(this.clients);
-          this.generalService.sendMessage(Constants.RECEIVER_ID_CLIENT_SEARCH_TABLE, this.clients);
+          this.sendMessage(ReceiverID.RECEIVER_ID_CLIENT_SEARCH_TABLE, this.clients);
 
 
         }
@@ -431,7 +440,7 @@ export class ClientSearchFormComponent extends AbstractComponent implements OnIn
   ngOnDestroy(): void {
     super.ngOnDestroy();
     // this.rispoService.setClientsSearchTableData(new Array<ClientData>());
-    this.generalService.sendMessage(Constants.RECEIVER_ID_CLIENT_SEARCH_TABLE, new Array<ClientData>());
+    this.sendMessage(ReceiverID.RECEIVER_ID_CLIENT_SEARCH_TABLE, new Array<ClientData>());
 
   }
 

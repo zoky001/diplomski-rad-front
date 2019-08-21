@@ -1,9 +1,8 @@
-<app-spinner  #spinnerReportsInProgress></app-spinner>
 
 <mat-card>
   <mat-card-title class="borderless" style="padding:15px">
     Izvještaji u radu
-    <strong>({{ numberReportsInProgress }})</strong>
+    <strong>({{ this.dataSource.data ? this.dataSource.data.length : '' }})</strong>
 
     <div class="buttons m-8-l p-16-t pull-right p-0 m-neg-8-t example-button-row">
 
@@ -44,10 +43,10 @@
         </th>
         <td mat-cell *matCellDef="let element" [style.width.%]="5" style="text-align: left" (click)="open(element.id)">
           <strong>
-            {{element.status=='CREATING'?'Kreiranje':''}}
-            {{element.status=='IN_PROGRESS'?'U radu':''}}
-            {{element.status=='LOCKED'?'Zakljucan':''}}
-            {{element.status=='ERROR'?'Greska':''}}
+            {{element.status == 'CREATING' ? 'Kreiranje' : ''}}
+            {{element.status == 'IN_PROGRESS' ? 'U radu' : ''}}
+            {{element.status == 'LOCKED' ? 'Zakljucan' : ''}}
+            {{element.status == 'ERROR' ? 'Greska' : ''}}
           </strong>
         </td>
       </ng-container>
@@ -59,7 +58,7 @@
         <td mat-cell *matCellDef="let element" [style.width.%]="10" style="text-align: left" (click)="open(element.id)">
           <strong>
             {{element.creationDateAsString }} <!-- | date:"dd MM yyyy" }}-->
-          </strong>        </td>
+          </strong></td>
       </ng-container>
 
       <ng-container matColumnDef="reportDate">
@@ -77,7 +76,8 @@
         <th mat-header-cell *matHeaderCellDef [style.width.%]="15" style="text-align: center">
           Vrsta prikaza izloženosti
         </th>
-        <td mat-cell *matCellDef="let element" [style.width.%]="15" style="text-align: center" (click)="open(element.id)">
+        <td mat-cell *matCellDef="let element" [style.width.%]="15" style="text-align: center"
+            (click)="open(element.id)">
           {{element.exposureView}}
         </td>
       </ng-container>
@@ -99,8 +99,9 @@
         <th mat-header-cell *matHeaderCellDef [style.width.%]="10.66" style="text-align: left">
           Vlasnik
         </th>
-        <td mat-cell *matCellDef="let element" [style.width.%]="10.66" style="text-align: left" (click)="open(element.id)">
-            {{element.owner}}
+        <td mat-cell *matCellDef="let element" [style.width.%]="10.66" style="text-align: left"
+            (click)="open(element.id)">
+          {{element.owner}}
         </td>
       </ng-container>
 
@@ -108,7 +109,8 @@
         <th mat-header-cell *matHeaderCellDef [style.width.%]="10.66" style="text-align: left">
           Org jedinica
         </th>
-        <td mat-cell *matCellDef="let element" [style.width.%]="10.66" style="text-align: left" (click)="open(element.id)">
+        <td mat-cell *matCellDef="let element" [style.width.%]="10.66" style="text-align: left"
+            (click)="open(element.id)">
           {{element.orgJed}}
         </td>
       </ng-container>

@@ -1,13 +1,14 @@
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { SearchType } from '../../../model/SearchType';
-import { Constants } from '../../../model/Constants';
-import { RispoService } from '../../../service/rispo.service';
-import { ReportStatus } from '../../../model/report-status';
-import { Group } from '../../../model/group';
-import { AbstractComponent } from '../../../shared/component/abstarctComponent/abstract-component';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
-import {AppComponent} from '../../../app.component';
+import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {SearchType} from '../../../model/SearchType';
+import {Constants} from '../../../utilities/Constants';
+import {RispoService} from '../../../service/rispo.service';
+import {ReportStatus} from '../../../model/report-status';
+import {Group} from '../../../model/group';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 
 @Component({
@@ -18,8 +19,9 @@ import {AppComponent} from '../../../app.component';
 export class WorkingReportSearchFormComponent extends AbstractComponent implements OnDestroy, OnInit {
 
 
-  constructor(private rispoService: RispoService) {
-    super();
+  constructor(private rispoService: RispoService,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
 
   }
 
@@ -63,13 +65,15 @@ export class WorkingReportSearchFormComponent extends AbstractComponent implemen
     this.initSearchForm();
 
 
-    AppComponent.generalService.getMessage().subscribe(value => {
-        if (value.receiverId === Constants.RECEIVER_ID_REFRESH_HOME_COMPONENT) {
+    const sub = this.messageBusService.subscribe(value => {
+        if (value.code === ReceiverID.RECEIVER_ID_REFRESH_HOME_COMPONENT) {
           this.clearSearchedReports();
 
         }
       }
     );
+
+    this.subscriptions.push(sub);
 
   }
 
@@ -147,14 +151,18 @@ export class WorkingReportSearchFormComponent extends AbstractComponent implemen
 
       this.showClearSearchBtn = true;
       // this.log('Primljeni podatci: ' + JSON.stringify(response));
-      this.rispoService.setReportsInProgressTableData(response);
+      // this.rispoService.setReportsInProgressTableData(response);
 
-    }, err => {
+      this.sendMessage(ReceiverID.RECEIVER_ID_REPORT_IN_PROGRESS_DATA, response);
+
+
+      }, err => {
 
       this.log('Greska kod dohvata klijenata:  + err');
       this.addMessage(Constants.REPORTS_FETCH.toString(), Constants.REPORTS_FETCH_ERROR.toString());
 
-      this.rispoService.setReportsInProgressTableData(new Array<Group>());
+      // this.rispoService.setReportsInProgressTableData(new Array<Group>());
+      this.sendMessage(ReceiverID.RECEIVER_ID_REPORT_IN_PROGRESS_DATA, new Array<Group>());
 
     });
 
@@ -169,7 +177,8 @@ export class WorkingReportSearchFormComponent extends AbstractComponent implemen
     try {
 
       WorkingReportSearchFormComponent.searchActive = false;
-      this.rispoService.fetchReportsInProcess.next();
+      // this.rispoService.fetchReportsInProcess.next();
+      this.sendMessage(ReceiverID.RECEIVER_ID_FETCH_REPORT_IN_PROCESS, true);
       this.showClearSearchBtn = false;
       this.clearSearchData();
       this.initSearchForm();

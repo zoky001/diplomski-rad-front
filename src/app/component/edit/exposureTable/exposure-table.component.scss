@@ -1,0 +1,45 @@
+.bodycontainer { max-height: 600px; margin: 0; overflow-y: auto; overflow-x: auto;}
+.table-scrollable { margin: 0; padding: 0; }
+
+table, th, td {
+  border: 1px solid black;
+  padding: 8px;
+}
+tr.mat-header-row {
+  height: 36.8px;
+}
+.fa-info-circle:before {
+  content: "\f05a";
+}
+
+.fa {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.red-background {
+  background-color: #F08080 !important;
+}
+
+.white-background {
+  background-color: #ffffff !important;
+}
+
+.smallButtonWithIcon {
+  max-height: 30px;
+  max-width: 4px;
+  padding-top: 4px;
+}
+
+
+.smallIconOnButton {
+  margin-left: -12px;
+}
+
+.example-button-row button,
+.example-button-row a {
+  margin-right: 8px;
+}

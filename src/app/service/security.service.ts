@@ -4,7 +4,7 @@ import { User } from '../model/user';
 import { Group } from '../model/group';
 import { Client } from '../model/client';
 import { ReportStatus } from '../model/report-status';
-import {Logger, LoggerFactory} from '../shared/logging/LoggerFactory';
+import {Logger, LoggerFactory} from '../core-module/service/logging/LoggerFactory';
 import {forkJoin} from 'rxjs';
 
 

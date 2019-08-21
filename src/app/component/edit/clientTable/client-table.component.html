@@ -1,0 +1,360 @@
+<mat-card>
+  <mat-card-title class="borderless" style="height: 60px">
+    <div class="row" style="height: 40px">
+      <div class="col-md-4">
+        <mat-form-field class="col-md-9 p-12-r p-12-b p-12-l" style="font-size: 18px;">
+
+          <mat-select placeholder="Prikaz članova grupe" (selectionChange)="showAllClientsOnChange($event)"
+                      [(ngModel)]="showAllClients" style="font-size: 14px">
+            <mat-option *ngFor="let item of showGroupMemberMenu" [value]="item.value">
+                    <span style="height: 26px; color: #333; font-weight:500">
+                      {{item.label}}
+                    </span>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="col-md-3 p-12-r p-12-b p-12-l" style="font-size: 18px;">
+
+          <mat-select placeholder="Valuta" [(ngModel)]="currency" (selectionChange)="currencyOnChange($event)"
+                      style="font-size: 14px">
+
+            <mat-option *ngFor="let item of currencyMenu" [value]="item.value">
+
+                  <span style="height: 26px; color: #333; font-weight:500">
+                    {{item.label}}
+                  </span>
+            </mat-option>
+
+
+          </mat-select>
+        </mat-form-field>
+
+      </div>
+
+      <div class="col-md-3 left-divider right-divider">
+        <div class="p-12-r p-12-b p-12-l">
+
+          <table>
+            <tbody style="font-size: 13px">
+            <tr>
+              <td class="text-left">
+                Datum:
+              </td>
+              <td class="text-right">
+                {{ this.rispoService.getReportsDetailsGroup().reportDateAsString }}
+              </td>
+            </tr>
+            <tr>
+              <td class="text-left">
+                Vrsta izloženosti:
+              </td>
+              <td class="text-right">
+                {{ this.rispoService.getReportsDetailsGroup().getExposureViewForEditView() }}
+              </td>
+            </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+
+      <div class="col-md-5" example-button-row>
+
+          <button mat-raised-button  (click)="groupClients()"
+                  *ngIf="! group.locked  && userService.canEditData()">
+
+            GRUPIRAJ
+
+          </button>
+
+          <button mat-raised-button  color="warn" (click)="openGroupExoposureTableDialog()">
+
+           <!-- PRIKAZ -->IZLOŽENOSTI GRUPE
+
+          </button>
+
+          <button mat-raised-button   (click)="exportToExcel()" matTooltip="IZVEZI RISPO U EXCEL">
+
+            IZVEZI
+
+          </button>
+
+          <button mat-raised-button   (click)="lock()" *ngIf="! group.locked  && userService.canEditData()">
+
+
+            ZAKLJUČAJ
+
+          </button>
+
+          <button mat-raised-button  color="primary"
+                  [matMenuTriggerFor]="menuDodaj" *ngIf="! group.locked  && userService.canEditData()">
+            <span>DODAJ</span>
+            &nbsp;
+            &nbsp;
+            <mat-icon [ngClass]="{'smallIconOnButton': true }"
+                      [ngStyle]="{'max-height': '5px', 'margin-top':'-20px',     'margin-right': '-15px' } ">
+              arrow_drop_down
+            </mat-icon>
+            <!-- style="margin-left: -12px;"-->
+          </button>
+
+          <mat-menu #menuDodaj="matMenu">
+
+            <button mat-menu-item w-icon xs raised white [ngStyle]="{'display': showActionsColumn()?'':'none' } "
+                    (click)="addNewClient()">
+              <mat-icon>add_circle_outline</mat-icon>
+              <span>Dodaj novog klijenta</span>
+            </button>
+
+            <button mat-menu-item w-icon xs raised white (click)="addExistingClient()">
+              <mat-icon>add_circle_outline</mat-icon>
+              <span>Dodaj postojećeg klijenta</span>
+            </button>
+          </mat-menu>
+
+
+      </div>
+
+
+    </div>
+  </mat-card-title>
+
+  <mat-card-content class="mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource">
+
+      <ng-container matColumnDef="checkBox">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="2" style="text-align: center">
+        </th>
+        <td mat-cell *matCellDef="let rowData" [style.width.%]="2" class="text-center">
+          <mat-checkbox [(ngModel)]="rowData.selected" name="clientChecked"></mat-checkbox>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="nb">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="2.5" style="text-align: left">
+          Nb
+        </th>
+        <td mat-cell *matCellDef="let element; let i = index" [style.width.%]="2.5" class="text-left">
+          <div *ngIf="element.primaryMember; else elseElement"
+               style="border-radius: 50%; width: 34px; height: 34px; background-color: rgb(60, 98, 155); color: rgb(255, 255, 255); line-height: 34px; text-align: center;">
+            {{ showAllClients ? element.index : element.indexWithExposures }}.
+          </div>
+
+
+          <ng-template #elseElement>
+            <div
+              style="border-radius: 50%; width: 34px; height: 34px; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); line-height: 34px; text-align: center;">
+              {{ showAllClients ? element.index : element.indexWithExposures }}.
+            </div>
+          </ng-template>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="orgJed">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="5" style="text-align: left">
+          OJ
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="5" class="text-left">
+          {{ element.orgJed }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="mb_oib">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="7" [ngStyle]="{'display': currency=='HRK'?'':'none' } "
+            style="text-align: left">
+          MB (OIB)
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="7" [ngStyle]="{'display': currency=='HRK'?'':'none' } "
+            class="text-left">
+          {{ element.mb ? '' + element.mb + '' + element.smb : '' }}
+          {{ element.oib ? '(' + element.oib + ')' : '' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="registerNumber">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="7" [ngStyle]="{'display': currency=='EUR'?'':'none' } "
+            style="text-align: left">
+          Reg. Number
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="7" [ngStyle]="{'display': currency=='EUR'?'':'none' } "
+            class="text-left">
+          {{ element.registerNumber }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="borrower">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="17" style="text-align: left">
+          Borrower
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="17" class="text-left">
+          {{ element.borrower }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="sndg">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="7.5" style="text-align: left">
+          SNdg
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="7.5" class="text-left">
+          {{ element.sndg === null ? ' - ' : element.sndg }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="country">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="5" style="text-align: left">
+          Country (Citizenship)
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="5" class="text-left">
+          {{ element.mb && element.country ? element.country : '' }}
+          {{ element.oib && element.country ? '(' + element.country + ')' : '' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="intRating">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="3" style="text-align: left">
+          INT. Rating
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="3" class="text-left">
+          {{ element.intRating === null ? ' - ' : element.intRating.name }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="pd">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="5" style="text-align: left">
+          PD
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="5" class="text-left">
+          {{ element.pd === null ? ' - ' : element.pd + ' %' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="ratingModel">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="3" style="text-align: left">
+          Rating model
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="3" class="text-left">
+          {{ element.ratingModel === null ? '-' : element.ratingModel.name }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="financialsEnclosed">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="5" style="text-align: left">
+          Financials enclosed
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="5" class="text-left">
+          <mat-checkbox [(ngModel)]="element.financialsEnclosed" (change)="save(element)"
+                        name="financialsEnclosedChecked"
+                        disabled="{{group.locked}}">
+
+          </mat-checkbox>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="industry">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="15" style="text-align: left">
+          Activity Industry
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="15" class="text-left">
+          {{ element.industry === null ? ' - ' : element.industry }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="ownerName">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="17" style="text-align: left">
+          Ownership/ Shareholders
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="17" class="text-left">
+          {{ element.ownerName === null || element.provjeriVrstuOsobe('Z') ? ' - ' : element.ownerName }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="ratingRelation">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="3" style="text-align: left">
+          Rating relation
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="3" class="text-left">
+          {{ element.ratingRelation === null ? '-' : element.ratingRelation.name }}
+        </td>
+      </ng-container>
+
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef [style.width.%]="3"
+            [ngStyle]="{'display': showActionsColumn()?'':'none' } " style="text-align: center">
+
+        </th>
+        <td mat-cell *matCellDef="let element" [style.width.%]="3"
+            [ngStyle]="{'display': showActionsColumn()?'':'none' } " class="text-center">
+          <div class="example-button-row">
+            <table>
+              <tbody>
+              <tr>
+                <td>
+                  <button mat-icon-button color="primary" [matMenuTriggerFor]="menu">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #menu="matMenu">
+
+                    <button mat-menu-item w-icon xs raised white [ngStyle]="{'display': showActionsColumn()?'':'none'}"
+                            [ngClass]="'dropDownItem'"
+                            (click)="editClient(element)">
+                      <mat-icon>edit</mat-icon>
+                      <span>Uredi</span>
+                    </button>
+
+                    <button mat-menu-item w-icon xs raised white [ngClass]="'dropDownItem'" (click)="remove(element)">
+                      <mat-icon>delete</mat-icon>
+                      <span>Obriši</span>
+                    </button>
+
+                    <button mat-menu-item w-icon xs raised white [ngStyle]="{'display': element.grouped?'':'none' }"
+                            [ngClass]="'dropDownItem'"
+                            (click)="unGroupClient(element)">
+                      <mat-icon>link_off</mat-icon>
+                      <span>Odgrupiraj</span>
+                    </button>
+
+                    <button mat-menu-item w-icon xs raised white
+                            [ngStyle]="{'display': element.primaryMember?'none':'' }"
+                            [ngClass]="'dropDownItem'"
+                            (click)="setPrimaryMember(element)">
+                      <mat-icon>arrow_upward</mat-icon>
+                      <span>Postavi kao matricu</span>
+                    </button>
+
+                    <button mat-menu-item w-icon xs raised white [ngClass]="'dropDownItem'"
+                            (click)="createExposure(element, group)">
+                      <mat-icon>add_circle_outline</mat-icon>
+                      <span>Dodaj izloženost za klijenta</span>
+                    </button>
+
+                    <button mat-menu-item w-icon xs raised white [ngStyle]="{'display': element.error?'':'none' }"
+                            [ngClass]="'dropDownItem'"
+                            (click)="refreshClientData(element)">
+                      <mat-icon>update</mat-icon>
+                      <span>Ponovi dohvat</span>
+                    </button>
+
+
+                  </mat-menu>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          [ngStyle]="{'background-color': getBackgroundColor(row) , 'display': isThisMemberDisplayed(row)}"
+          [ngClass]="{'groupedClient': isClientGrouped(row)}">
+
+      </tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+  </mat-card-content>
+
+</mat-card>

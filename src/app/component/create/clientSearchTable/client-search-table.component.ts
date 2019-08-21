@@ -2,11 +2,10 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {MatPaginator, MatTableDataSource} from '@angular/material';
 import {ClientData} from '../../../model/client-data';
 import {RispoService} from '../../../service/rispo.service';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {Constants} from '../../../model/Constants';
-import {GeneralService} from '../../../service/general-service';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
-import {SpinnerComponent} from '../../../shared/component/spinner-component/spinner.component';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 
 @Component({
@@ -32,13 +31,9 @@ export class ClientSearchTableComponent extends AbstractComponent implements OnI
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  @ViewChild('spinner') spinner: SpinnerComponent;
-
-
   constructor(private rispoService: RispoService,
-              public generalService: GeneralService) {
-    super();
-
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
   }
 
   ngOnInit(): void {
@@ -47,8 +42,8 @@ export class ClientSearchTableComponent extends AbstractComponent implements OnI
     this.dataSource.paginator = this.paginator;
 
 
-    const sub = this.generalService.getMessage().subscribe(value => {
-      if (value.receiverId === Constants.RECEIVER_ID_CLIENT_SEARCH_TABLE) {
+    const sub = this.messageBusService.subscribe(value => {
+      if (value.code === ReceiverID.RECEIVER_ID_CLIENT_SEARCH_TABLE) {
         this.dataSource.data = value.data;
       }
     }, error1 => {
@@ -62,7 +57,9 @@ export class ClientSearchTableComponent extends AbstractComponent implements OnI
 
   fetchByClient(clientData: ClientData): void {
 
-    this.rispoService.fetchByClient.next(clientData);
+    // todo neka sprobavam this.rispoService.fetchByClient.next(clientData);
+
+    this.sendMessage(ReceiverID.RECEIVER_ID_FETCH_BY_CLIENT, clientData);
 
   }
 

@@ -30,6 +30,9 @@ export class Group {
   feesEUR: number;
 
 
+  locked:boolean;
+
+
   public refreshIndexes(): void {
     let index: number = 1;
     let indexWithExposures: number = 1;

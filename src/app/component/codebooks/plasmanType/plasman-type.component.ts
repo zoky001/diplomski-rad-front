@@ -3,11 +3,13 @@ import {MatDialog, MatPaginator, MatTableDataSource} from '@angular/material';
 import {RispoService} from '../../../service/rispo.service';
 import {PlasmanTypeDialogComponent} from './plasman-type-dialog.component';
 import {PlasmanTypeEntry} from '../../../model/plasman-type-entry';
-import {ConfirmDialogComponent} from '../../../shared/component/confirm-dialog/confirm-dialog.component';
-import {Constants} from '../../../model/Constants';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
-import {SpinnerComponent} from '../../../shared/component/spinner-component/spinner.component';
+import {ConfirmDialogComponent} from '../../../shared-module/component/confirm-dialog/confirm-dialog.component';
+import {Constants} from '../../../utilities/Constants';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {SpinnerComponent} from '../../../shared-module/component/spinner-component/spinner.component';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 @Component({
   selector: 'app-plasman-type',
@@ -35,27 +37,22 @@ export class PlasmanTypeComponent extends AbstractComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  @ViewChild('spinner') spinner: SpinnerComponent;
-
-
-
   private dialogRef: any;
 
 
   constructor(private rispoService: RispoService,
-              public dialog: MatDialog) {
-    super();
+              public dialog: MatDialog,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
   }
 
   ngOnInit(): void {
 
     this.dataSource.paginator = this.paginator;
 
-    this.spinner.track([RispoService.CALL_TRACKING_TOKEN_PLACEMENT_TYPE]);
-
     this.loadEntries();
 
-    const sub1 = this.rispoService.refreshPlacementTypeData.subscribe(() => {
+    const sub1 = this.getMessage(ReceiverID.RECEIVER_ID_REFRESH_PLACEMENT_TYPE_DATA).subscribe(() => {
 
       this.refresh();
 
@@ -132,11 +129,13 @@ export class PlasmanTypeComponent extends AbstractComponent implements OnInit {
 
           this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_SUCCESS.toString());
 
-          this.rispoService.refreshPlacementTypeData.next();
+          // this.rispoService.refreshPlacementTypeData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_PLACEMENT_TYPE_DATA, true);
 
         },
         error => {
-          this.rispoService.refreshPlacementTypeData.next();
+          // this.rispoService.refreshPlacementTypeData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_PLACEMENT_TYPE_DATA, true);
 
           this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_ERROR.toString());
 
@@ -144,7 +143,8 @@ export class PlasmanTypeComponent extends AbstractComponent implements OnInit {
     } catch (e) {
       this.log('PlasmanType ERROR:  ' + JSON.stringify(e));
 
-      this.rispoService.refreshPlacementTypeData.next();
+      // this.rispoService.refreshPlacementTypeData.next();
+      this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_PLACEMENT_TYPE_DATA, true);
 
       this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_ERROR.toString());
 

@@ -1,7 +1,7 @@
-import { Client } from './client';
-import { Exposure } from './exposure';
-import { Group } from './group';
-import { RispoService } from '../service/rispo.service';
+import {Client} from './client';
+import {Exposure} from './exposure';
+import {Group} from './group';
+import {Utility} from '../utilities/Utility';
 
 export class GroupCommand {
   id: number;
@@ -39,7 +39,7 @@ export class GroupCommand {
     this.jmbg = group.jmbg;
     this.oib = group.oib;
     this.application = group.application;
-    this.status = RispoService.reportStatusEnumToString(group.status);
+    this.status = Utility.reportStatusEnumToString(group.status);
     this.progress = group.progress;
     this.reportDate = group.reportDate.getTime();
     this.owner = group.owner;

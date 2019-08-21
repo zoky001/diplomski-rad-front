@@ -1,62 +1,67 @@
+<app-nav-bar class="mat-elevation-z6"></app-nav-bar>
 <app-spinner  #spinner></app-spinner>
 
 
-<div class="container " style="width: 95% !important; margin-top: 10px" id="2Div">
+<div class="container " style="width: 95% !important; margin-top: 80px" id="2Div">
   <div class="row">
 
     <div class="col-xs-12 col-sm-12">
 
-      <mat-card class="m-4-t full-width mat-elevation-z4" id="client-list">
+      <mat-card class="m-4-t full-width mat-elevation-z4" id="client-list" *ngIf="!!title">
         <div class="row">
 
-          <div class="col-md-2">
-            <mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l"
-                            *ngIf="userService.getLoggedUserUser().canSearch">
+          <div class="col-md-7">
 
-              <mat-select placeholder="Izvještaj" style="font-weight: bold" [(value)]="selected">
+            <h3 style="margin-top: 10px">
+              {{title}}
+            </h3>
+            <!--<mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l"-->
+                            <!--*ngIf="userService.getLoggedUserUser().canSearch">-->
 
-                <mat-option *ngFor="let item of reportMenu" [value]="item.key" routerLink="{{item.route}}"
-                            (click)="navigateTo(item.route)">
-                  <span style="color: #333; font-weight:500">
-                    {{item.label}}
-                  </span>
+              <!--<mat-select placeholder="Izvještaj" style="font-weight: bold" [(value)]="selected">-->
 
-                </mat-option>
+                <!--<mat-option *ngFor="let item of reportMenu" [value]="item.key" routerLink="{{item.route}}"-->
+                            <!--(click)="navigateTo(item.route)">-->
+                  <!--<span style="color: #333; font-weight:500">-->
+                    <!--{{item.label}}-->
+                  <!--</span>-->
+
+                <!--</mat-option>-->
 
 
-              </mat-select>
-            </mat-form-field>
+              <!--</mat-select>-->
+            <!--</mat-form-field>-->
           </div>
 
-          <div class="col-md-2">
-            <mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l"
-                            *ngIf="userService.getLoggedUserUser().canEditCodebooks">
+          <!--<div class="col-md-2">-->
+            <!--&lt;!&ndash;<mat-form-field style="width: 100% !important;" class="p-12-r p-12-b p-12-l"&ndash;&gt;-->
+                            <!--&lt;!&ndash;*ngIf="userService.getLoggedUserUser().canEditCodebooks">&ndash;&gt;-->
 
-              <mat-select placeholder="Administracija" style="font-weight: bold">
+              <!--&lt;!&ndash;<mat-select placeholder="Administracija" style="font-weight: bold">&ndash;&gt;-->
 
-                <mat-optgroup label="Šifrarnici">
-                  <mat-option *ngFor="let item of adminMenu" [value]="item.key" routerLink="{{item.route}}">
-                  <span style="color: #333; font-weight:500">
-                    {{item.label}}
-                  </span>
+                <!--&lt;!&ndash;<mat-optgroup label="Šifrarnici">&ndash;&gt;-->
+                  <!--&lt;!&ndash;<mat-option *ngFor="let item of adminMenu" [value]="item.key" routerLink="{{item.route}}">&ndash;&gt;-->
+                  <!--&lt;!&ndash;<span style="color: #333; font-weight:500">&ndash;&gt;-->
+                    <!--&lt;!&ndash;{{item.label}}&ndash;&gt;-->
+                  <!--&lt;!&ndash;</span>&ndash;&gt;-->
 
-                  </mat-option>
-                </mat-optgroup>
+                  <!--&lt;!&ndash;</mat-option>&ndash;&gt;-->
+                <!--&lt;!&ndash;</mat-optgroup>&ndash;&gt;-->
 
 
-              </mat-select>
-            </mat-form-field>
-          </div>
+              <!--&lt;!&ndash;</mat-select>&ndash;&gt;-->
+            <!--&lt;!&ndash;</mat-form-field>&ndash;&gt;-->
+          <!--</div>-->
 
-          <div class="col-md-3 example-button-row">
+          <!--<div class="col-md-3 example-button-row">-->
 
-            <button mat-raised-button style="background: #cfcfcf"(click)="openManual()">
-              Upute
-            </button>
-          <!--  <button mat-raised-button (click)="redirectToRCCPage()">
-              Prijava problema
-            </button>-->
-          </div>
+            <!--&lt;!&ndash;<button mat-raised-button style="background: #cfcfcf"(click)="openManual()">&ndash;&gt;-->
+              <!--&lt;!&ndash;Upute&ndash;&gt;-->
+            <!--&lt;!&ndash;</button>&ndash;&gt;-->
+          <!--&lt;!&ndash;  <button mat-raised-button (click)="redirectToRCCPage()">-->
+              <!--Prijava problema-->
+            <!--</button>&ndash;&gt;-->
+          <!--</div>-->
 
             <app-available-dates></app-available-dates>
         </div>

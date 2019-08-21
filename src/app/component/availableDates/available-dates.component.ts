@@ -1,13 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { RispoService } from '../../service/rispo.service';
-import { Group, LoadGroupDataStatus } from '../../model/group';
-import { ReportStatus } from '../../model/report-status';
-import { Constants } from '../../model/Constants';
-import { GroupedSelectBoxData } from '../../model/grouped-select-box-data';
-import { FormControl } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AbstractComponent } from '../../shared/component/abstarctComponent/abstract-component';
-import {Logger, LoggerFactory} from '../../shared/logging/LoggerFactory';
+import {Component, OnInit} from '@angular/core';
+import {RispoService} from '../../service/rispo.service';
+import {Group, LoadGroupDataStatus} from '../../model/group';
+import {ReportStatus} from '../../model/report-status';
+import {Constants} from '../../utilities/Constants';
+import {GroupedSelectBoxData} from '../../model/grouped-select-box-data';
+import {FormControl} from '@angular/forms';
+import {ActivatedRoute, Router} from '@angular/router';
+import {AbstractComponent} from '../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../core-module/service/logging/LoggerFactory';
+import {MessageBusService} from '../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../utilities/ReceiverID';
 
 @Component({
   selector: 'app-available-dates',
@@ -30,8 +32,9 @@ export class AvailableDatesComponent extends AbstractComponent implements OnInit
 
   constructor(public rispoService: RispoService,
               private route: ActivatedRoute,
-              private router: Router) {
-    super();
+              private router: Router,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
   }
 
 
@@ -173,7 +176,12 @@ export class AvailableDatesComponent extends AbstractComponent implements OnInit
 
     const groupOnDateID: number = this.selectedDateControl.value;
 
-    this.rispoService.loadGroupData.next({'id': groupOnDateID.toString(10), 'status': LoadGroupDataStatus.LOAD_NEW_GROUP_DATA});
+    // this.rispoService.loadGroupData.next();
+
+    this.sendMessage(ReceiverID.RECEIVER_ID_LOAD_GROUP_DATA,
+      {'id': groupOnDateID.toString(10), 'status': LoadGroupDataStatus.LOAD_NEW_GROUP_DATA}
+    );
+
 
   }
 

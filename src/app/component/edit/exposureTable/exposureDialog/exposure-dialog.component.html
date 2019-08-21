@@ -1,0 +1,200 @@
+<form [formGroup]="exposureForm">
+
+  <div style="width: auto; max-height: 80vh" class="scrollable">
+    <h2 matDialogTitle class="paper-font-title">Podaci o izloženosti</h2>
+    <mat-dialog-content>
+      <table class="row" style="height: 500px">
+        <tr>
+          <td>
+            <mat-form-field class="no-padding" style="width: 150px;">
+              <textarea matInput placeholder="Type of credit" formControlName="typeOfCredit" tabindex="1"
+                        [(ngModel)]="exposure.typeOfCredit"></textarea>
+              <mat-error *ngIf="exposureForm.controls['typeOfCredit'].errors?.required">Obavezan unos</mat-error>
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-form-field class="no-padding;" style="width: 150px;">
+              <input matInput placeholder="Tenor" formControlName="tenor" tabindex="1" [(ngModel)]="exposure.tenor">
+              <mat-error *ngIf="exposureForm.controls['tenor'].errors?.pattern">Pogrešan format unosa</mat-error>
+              <mat-error *ngIf="exposureForm.controls['tenor'].errors?.required">Obavezan unos</mat-error>
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-form-field class="no-padding;" style="width: 150px;">
+              <input matInput euiCurrencyMask placeholder="Previous" formControlName="newPrevious" tabindex="1"
+                     [(ngModel)]="exposure.newPrevious">
+              <mat-error *ngIf="exposureForm.controls['newPrevious'].errors?.required">Obavezan unos</mat-error>
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-form-field class="no-padding;" style="width: 150px;">
+              <input matInput euiCurrencyMask placeholder="Change" formControlName="newChange" tabindex="1"
+                     [(ngModel)]="exposure.newChange">
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-form-field class="no-padding;" style="width: 150px;">
+              <input matInput euiCurrencyMask placeholder="Proposed" formControlName="newProposed" tabindex="1"
+                     [(ngModel)]="exposure.newProposed">
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-form-field class="no-padding;" style="width: 150px;">
+              <input matInput euiCurrencyMask placeholder="Balance" formControlName="newBalance" tabindex="1"
+                     [(ngModel)]="exposure.newBalance">
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-form-field class="no-padding;" style="width: 200px;">
+              <input matInput euiCurrencyMask placeholder="Spread" formControlName="spread" tabindex="1"
+                     [(ngModel)]="exposure.spread">
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-form-field class="no-padding;" style="width: 150px;">
+              <input matInput euiCurrencyMask placeholder="Int.rate" formControlName="intRate" tabindex="1"
+                     [(ngModel)]="exposure.intRate">
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-form-field class="no-padding;" style="width: 150px;">
+              <input matInput placeholder="Fees" formControlName="fees" tabindex="1" [(ngModel)]="exposure.fees">
+            </mat-form-field>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="9">
+            <h1>
+              Collaterals
+            </h1>
+            <div formArrayName="collaterals" *ngFor="let collateralRow of getControls(); let i = index">
+              <div [formGroupName]="i" class="row">
+                <mat-form-field class="no-padding;" style="margin-right:16px">
+                  <input matInput tabindex="1" formControlName="collateralName"
+                         [(ngModel)]="exposure.collaterals[i].name">
+                </mat-form-field>
+                <mat-form-field *ngIf="currency === 'HRK'" class="no-padding;" style="margin-right:16px">
+                  <input matInput euiCurrencyMask formControlName="collateralValueHrk" tabindex="1"
+                         [(ngModel)]="exposure.collaterals[i].valueHrk">
+                </mat-form-field>
+                <mat-form-field *ngIf="currency === 'EUR'" class="no-padding;" style="margin-right:16px">
+                  <input matInput formControlName="collateralValueEur" tabindex="1"
+                         [(ngModel)]="exposure.collaterals[i].valueEur">
+                </mat-form-field>
+                <button class="mat-raised-button" style="height: 50px" grey mat-raised-button xs matTooltip="Obriši"
+                        (click)="removeCollateral(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="row">
+              <mat-form-field class="no-padding;" style="margin-right:16px">
+                <input matInput tabindex="1" formControlName="newCollateralName" [(ngModel)]="collateral.name">
+              </mat-form-field>
+              <mat-form-field class="no-padding;" style="margin-right:16px">
+                <input matInput euiCurrencyMask formControlName="newCollateralValue" tabindex="1"
+                       [(ngModel)]="collateral.valueHrk">
+              </mat-form-field>
+              <button class="mat-raised-button" style="margin-right:16px; height: 50px" grey mat-raised-button xs
+                      matTooltip="Dodaj" (click)="addCollateral(false)">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <mat-form-field class="no-padding smallInput" [ngStyle]="{'background-color': newSecuredPreviousBgColor}"
+                            style="width: 150px;">
+              <input matInput euiCurrencyMask placeholder="Secured previous" formControlName="newSecuredPrevious"
+                     tabindex="1" [(ngModel)]="exposure.newSecuredPrevious">
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-form-field class="no-padding;" [ngStyle]="{'background-color': newSecuredProposedBgColor}"
+                            style="width: 150px;">
+              <input matInput euiCurrencyMask placeholder="Secured proposed" formControlName="newSecuredProposed"
+                     tabindex="1" [(ngModel)]="exposure.newSecuredProposed">
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-form-field class="no-padding;" [ngStyle]="{'background-color': newSecuredBalanceBgColor}"
+                            style="width: 150px;">
+              <input matInput euiCurrencyMask placeholder="Secured balance" formControlName="newSecuredBalance"
+                     tabindex="1" [(ngModel)]="exposure.newSecuredBalance">
+            </mat-form-field>
+          </td>
+          <td>
+            <mat-checkbox formControlName="lessThanYear" [(ngModel)]="exposure.lessThanYear" style="margin: -10px"><
+              year
+            </mat-checkbox>
+          </td>
+          <td>
+            <mat-form-field style="width: 150px;">
+              <mat-select placeholder="Type*" formControlName="plasmanType" [(ngModel)]="exposure.plasmanType"
+                          [compareWith]="compareToOption">
+                <mat-option *ngFor="let item of plasmanTypes" [value]="item">
+                <span style="color: #333; font-weight:500">
+                  {{item.name}}
+                </span>
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-error *ngIf="exposureForm.controls['plasmanType'].errors?.required">Obavezan unos</mat-error>
+          <td>
+            <mat-checkbox formControlName="commited" [(ngModel)]="exposure.commited" style="margin: -10px">Commited
+            </mat-checkbox>
+          </td>
+          <td>
+            <mat-form-field style="width: 200px;">
+              <mat-select placeholder="Taker*" formControlName="taker" [(ngModel)]="exposure.taker"
+                          [compareWith]="compareToOption">
+                <mat-option *ngFor="let item of takers" [value]="item">
+                <span style="color: #333; font-weight:500">
+                  {{item.name}}
+                </span>
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="exposureForm.controls['taker'].errors?.required">Obavezan unos</mat-error>
+            </mat-form-field>
+          </td>
+          <td colspan="2">
+            <mat-form-field style="width: 150px;">
+              <mat-select placeholder="Risk class*" formControlName="riskClass" [(ngModel)]="exposure.riskClass"
+                          [compareWith]="compareToOption">
+                <mat-option *ngFor="let item of riskClasses" [value]="item">
+                <span style="color: #333; font-weight:500">
+                  {{item.name}}
+                </span>
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="exposureForm.controls['riskClass'].errors?.required">Obavezan unos</mat-error>
+            </mat-form-field>
+          </td>
+        </tr>
+      </table>
+
+    </mat-dialog-content>
+  </div>
+  <div mat-dialog-actions>
+    <div class="button-container">
+
+      <button class="mat-raised-button" grey="" mat-dialog-close="" mat-raised-button="" sm="" type="button"
+              aria-label="Close dialog" tabindex="12">
+        <span class="mat-button-wrapper">Odustani</span>
+        <div class="mat-button-ripple mat-ripple" matripple=""></div>
+        <div class="mat-button-focus-overlay"></div>
+      </button>
+
+
+      <button class="mat-raised-button" mat-raised-button="" red="" sm="" type="submit" tabindex="10"
+              (click)="save(exposure)">
+        <span class="mat-button-wrapper">Spremi</span>
+        <div class="mat-button-ripple mat-ripple" matripple=""></div>
+        <div class="mat-button-focus-overlay"></div>
+      </button>
+    </div>
+  </div>
+</form>
+
+

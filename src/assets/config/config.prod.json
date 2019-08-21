@@ -1,0 +1,12 @@
+{
+  "env": {
+    "name": "PROD"
+  },
+  "logging": {
+    "console": true,
+    "info": false,
+    "error": true,
+    "debug": false
+  },
+  "apiServer": "https://diplomski-rad-back.herokuapp.com/"
+}

@@ -1,0 +1,234 @@
+<form [formGroup]="form">
+
+  <div style="width: 400px; max-height: 80vh">
+    <h2 matDialogTitle class="paper-font-title"> {{ client.grouped==true?'Podaci o grupi':'Podaci o klijentu' }}</h2>
+    <mat-dialog-content>
+
+      <table [style.width.%]="100">
+
+        <tr [ngStyle]="{'display': client.grouped?'none':'' } ">
+          <td colspan="2">
+            <mat-form-field class="no-padding; " [style.width.%]="45">
+              <input matInput placeholder="MB" formControlName="mbControl"
+                     tabindex="1">
+              <mat-error *ngIf="form.controls['mbControl'].errors?.pattern">Maticni broj mora sadrzavati 8</mat-error>
+
+
+            </mat-form-field>
+            <mat-form-field class="no-padding; " [style.width.%]="35">
+              <input matInput placeholder="SMB" formControlName="smbControl"
+                     tabindex="2">
+
+              <mat-error *ngIf="form.controls['smbControl'].errors?.pattern">SMB mora sadrzavati 3</mat-error>
+
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Borrower *" formControlName="borrowerControl"
+                     tabindex="3">
+
+              <mat-error *ngIf="form.controls['borrowerControl'].errors?.required">
+                Polje je obavezno za unos
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+        <tr [ngStyle]="{'display': client.grouped?'none':'' } ">
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="SNdg" formControlName="sndgControl"
+                     tabindex="4">
+
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="Country *" formControlName="countryControl"
+                     tabindex="5">
+
+              <mat-error *ngIf="form.controls['countryControl'].errors?.required">
+                Polje je obavezno za unos
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+
+              <mat-select placeholder="Int. rating" formControlName="intRatingControl" tabindex="6">
+
+                <mat-option *ngFor="let item of getIntRatings()" [value]="item.id">
+
+                  <span style="color: #333; font-weight:500">
+                    {{item.name}}
+                  </span>
+                </mat-option>
+
+
+              </mat-select>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="PD" type="number" step="0.01" formControlName="pdControl"
+                     tabindex="7">
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+
+              <mat-select matInput placeholder="Rating model" formControlName="ratingModelControl"
+                          tabindex="8">
+
+                <mat-option *ngFor="let item of getRatingModels()" [value]="item.id">
+
+                  <span style="color: #333; font-weight:500">
+                    {{item.name}}
+                  </span>
+                </mat-option>
+
+
+              </mat-select>
+
+            </mat-form-field>
+
+
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="no-padding; row " [style.width.%]="100">
+
+              <div class="col-md-6">
+                <p style="margin-top: 9px">Financials Enclosed</p>
+              </div>
+              <div class="col-md-6">
+                <mat-checkbox matInput formControlName="financialsEnclosedControl"
+                              tabindex="9">
+
+                </mat-checkbox>
+              </div>
+
+
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <input matInput placeholder="{{ client.grouped ?'Industry':'Industry *' }}"
+                     formControlName="industryControl"
+                     tabindex="10">
+
+              <mat-error *ngIf="form.controls['industryControl'].errors?.required">
+                Polje je obavezno za unos
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+              <textarea matInput placeholder="Ownership/Shareholders *" formControlName="ownershipControl"
+                        tabindex="11">
+
+              </textarea>
+
+              <mat-error *ngIf="form.controls['ownershipControl'].errors?.required">
+                Polje je obavezno za unos
+              </mat-error>
+
+            </mat-form-field>
+          </td>
+        </tr>
+
+        <tr [ngStyle]="{'display': client.grouped?'none':'' } ">
+          <td>
+            <mat-form-field class="no-padding; " [style.width.%]="100">
+
+              <mat-select matInput placeholder="Rating relation" formControlName="ratingRelationControl"
+                          tabindex="12">
+
+                <mat-option *ngFor="let item of getRatingRelation()" [value]="item.id">
+
+                  <span style="color: #333; font-weight:500">
+                    {{item.name}}
+                  </span>
+                </mat-option>
+
+
+              </mat-select>
+
+            </mat-form-field>
+
+
+          </td>
+        </tr>
+
+
+      </table>
+    </mat-dialog-content>
+    <div mat-dialog-actions>
+      <div class="button-container">
+
+        <button  mat-dialog-close="" mat-raised-button="" sm="" type="button"
+                aria-label="Close dialog" tabindex="14">
+          <span class="mat-button-wrapper">Odustani</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+
+
+        <button mat-raised-button color="warn"  type="submit" (click)="save(client)"
+                *ngIf="! client.grouped"
+                tabindex="13">
+          <span class="mat-button-wrapper">Spremi</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+
+        <button mat-raised-button  color="warn"  type="submit" (click)="group(client)"
+                *ngIf="client.grouped"
+                tabindex="13">
+          <span class="mat-button-wrapper">Spremi</span>
+          <div class="mat-button-ripple mat-ripple" matripple=""></div>
+          <div class="mat-button-focus-overlay"></div>
+        </button>
+
+      </div>
+    </div>
+  </div>
+</form>
+
+
+
+
+

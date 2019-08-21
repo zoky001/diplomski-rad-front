@@ -3,11 +3,13 @@ import {MatDialog, MatPaginator, MatTableDataSource} from '@angular/material';
 import {RispoService} from '../../../service/rispo.service';
 import {MultilanguageEntriesDialogComponent} from './multilanguage-entries-dialog.component';
 import {CodebookEntry} from '../../../model/codebook-entry';
-import {ConfirmDialogComponent} from '../../../shared/component/confirm-dialog/confirm-dialog.component';
-import {Constants} from '../../../model/Constants';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
-import {SpinnerComponent} from '../../../shared/component/spinner-component/spinner.component';
+import {ConfirmDialogComponent} from '../../../shared-module/component/confirm-dialog/confirm-dialog.component';
+import {Constants} from '../../../utilities/Constants';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {SpinnerComponent} from '../../../shared-module/component/spinner-component/spinner.component';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 @Component({
   selector: 'app-multilanguage-entries',
@@ -35,26 +37,21 @@ export class MultilanguageEntriesComponent extends AbstractComponent implements 
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  @ViewChild('spinner') spinner: SpinnerComponent;
-
-
   private dialogRef: any;
 
   constructor(private rispoService: RispoService,
-              public dialog: MatDialog) {
-    super();
+              public dialog: MatDialog,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
   }
 
   ngOnInit(): void {
     this.dataSource.paginator = this.paginator;
 
-    this.spinner.track([RispoService.CALL_TRACKING_TOKEN_CODEBOOK]);
-
-
     this.loadEntries();
 
 
-    const sub1 = this.rispoService.refreshCodebookData.subscribe(() => {
+    const sub1 = this.getMessage(ReceiverID.RECEIVER_ID_REFRESH_CODEBOOK_DATA).subscribe(() => {
 
       this.refresh();
 
@@ -131,11 +128,13 @@ export class MultilanguageEntriesComponent extends AbstractComponent implements 
 
           this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_SUCCESS.toString());
 
-          this.rispoService.refreshCodebookData.next();
+          // this.rispoService.refreshCodebookData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_CODEBOOK_DATA, true);
 
         },
         error => {
-          this.rispoService.refreshCodebookData.next();
+          // this.rispoService.refreshCodebookData.next();
+          this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_CODEBOOK_DATA, true);
 
           this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_ERROR.toString());
 
@@ -145,7 +144,8 @@ export class MultilanguageEntriesComponent extends AbstractComponent implements 
 
       this.log('CodebookEntry ERROR:  ' + JSON.stringify(e));
 
-      this.rispoService.refreshCodebookData.next();
+      // this.rispoService.refreshCodebookData.next();
+      this.sendMessage(ReceiverID.RECEIVER_ID_REFRESH_CODEBOOK_DATA, true);
 
       this.addMessage(Constants.CODEBOOK_REMOVE.toString(), Constants.CODEBOOK_REMOVE_ERROR.toString());
 

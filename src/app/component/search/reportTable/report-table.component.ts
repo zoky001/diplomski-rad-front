@@ -3,12 +3,13 @@ import {MatDialog, MatDialogRef, MatPaginator, MatTableDataSource} from '@angula
 import {RispoService} from '../../../service/rispo.service';
 import {Group} from '../../../model/group';
 import {ActivatedRoute, Router} from '@angular/router';
-import {ConfirmDialogComponent} from '../../../shared/component/confirm-dialog/confirm-dialog.component';
-import {Constants} from '../../../model/Constants';
+import {ConfirmDialogComponent} from '../../../shared-module/component/confirm-dialog/confirm-dialog.component';
+import {Constants} from '../../../utilities/Constants';
 import {LogsDialogComponent} from '../../report/logsDialog/logs-dialog.component';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {GeneralService} from '../../../service/general-service';
-import {Logger, LoggerFactory} from '../../../shared/logging/LoggerFactory';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
+import {ReceiverID} from '../../../utilities/ReceiverID';
 
 
 @Component({
@@ -46,15 +47,15 @@ export class ReportTableComponent extends AbstractComponent implements OnDestroy
               public dialog: MatDialog,
               private router: Router,
               private route: ActivatedRoute,
-              public generalService: GeneralService) {
-    super();
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
   }
 
   ngOnInit(): void {
     this.dataSource.paginator = this.paginator;
 
-    const sub = this.generalService.getMessage().subscribe(value => {
-      if (value.receiverId === Constants.RECEIVER_ID_REPORT_TABLE) {
+    const sub = this.messageBusService.subscribe(value => {
+      if (value.code === ReceiverID.RECEIVER_ID_REPORT_TABLE) {
         this.dataSource.data = value.data;
         this.numberReportsInProgress = value.data.length;
       }

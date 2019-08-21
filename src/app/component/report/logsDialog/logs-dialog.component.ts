@@ -1,8 +1,9 @@
 import {Component, Inject, OnInit, ViewChild} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material';
 import {RispoService} from '../../../service/rispo.service';
-import {AbstractComponent} from '../../../shared/component/abstarctComponent/abstract-component';
-import {SpinnerComponent} from '../../../shared/component/spinner-component/spinner.component';
+import {AbstractComponent} from '../../../shared-module/component/abstarctComponent/abstract-component';
+import {SpinnerComponent} from '../../../shared-module/component/spinner-component/spinner.component';
+import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
 
 @Component({
   selector: 'app-logs.dialog',
@@ -15,11 +16,10 @@ export class LogsDialogComponent extends AbstractComponent implements OnInit {
 
   private groupId = 0;
 
-  @ViewChild('spinner') spinner: SpinnerComponent;
-
-
-  constructor(@Inject(MAT_DIALOG_DATA) public data: any, private rispoService: RispoService) {
-    super();
+  constructor(@Inject(MAT_DIALOG_DATA) public data: any,
+              private rispoService: RispoService,
+              private messageBusService: MessageBusService) {
+    super(messageBusService);
 
     if (data.groupId !== undefined) {
       this.groupId = data.groupId;
@@ -28,8 +28,6 @@ export class LogsDialogComponent extends AbstractComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
-    this.spinner.track([RispoService.CALL_TRACKING_TOKEN_LOGS_MODAL]);
 
     this.rispoService.findLogsByGroup(this.groupId, true).subscribe(response => {
 
