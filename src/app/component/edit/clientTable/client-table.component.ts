@@ -1,6 +1,5 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {MatDialog, MatDialogRef, MatPaginator, MatSelectChange, MatTableDataSource} from '@angular/material';
-import {ClientData} from '../../../model/client-data';
 import {RispoService} from '../../../service/rispo.service';
 import {Group, LoadGroupDataStatus} from '../../../model/group';
 import {ReportStatus} from '../../../model/report-status';
@@ -23,9 +22,10 @@ import {AbstractComponent} from '../../../shared-module/component/abstarctCompon
 import {Logger, LoggerFactory} from '../../../core-module/service/logging/LoggerFactory';
 import {forkJoin, Subscription} from 'rxjs';
 import {PageMetaData} from '../../../shared-module/table/page-meta-data';
-import {SpinnerComponent} from '../../../shared-module/component/spinner-component/spinner.component';
 import {MessageBusService} from '../../../core-module/service/messaging/message-bus.service';
 import {ReceiverID} from '../../../utilities/ReceiverID';
+import {switchMap} from 'rxjs/operators';
+import {fromPromise} from 'rxjs/internal-compatibility';
 
 
 @Component({
@@ -146,7 +146,19 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
 
               this.isFirstLaod = true;
 
-              this.loadGroupData(this.id, this.userService.getLoggedUserUser().checkSecurity);
+              const startTime = new Date();
+              this.logger.error('POČETAK: ' + startTime + ' ms');
+
+              this.loadGroupDataPromise(this.id, this.userService.getLoggedUserUser().checkSecurity).then(value => {
+                const finishTime = new Date();
+                this.logger.error('KRAJ: ' + finishTime + ' ms');
+
+                const duration = finishTime.getTime() - startTime.getTime();
+
+                this.logger.error('TRAJANJE: ' + duration + ' ms');
+
+              });
+
 
             }
 
@@ -197,7 +209,7 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
     sub = this.getMessage<{ id: string, status: LoadGroupDataStatus }>(ReceiverID.RECEIVER_ID_LOAD_GROUP_DATA).subscribe(value => {
 
       if (value.status === LoadGroupDataStatus.LOAD_NEW_GROUP_DATA) {
-        this.loadGroupData(value.id, this.userService.getLoggedUserUser().checkSecurity).then(group => {
+        this.loadGroupDataPromise(value.id, this.userService.getLoggedUserUser().checkSecurity).then(group => {
           // this.rispoService.loadGroupData.next();
           this.sendMessage(ReceiverID.RECEIVER_ID_LOAD_GROUP_DATA, {
             'id': group.id.toString(10),
@@ -278,10 +290,9 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
   }
 
 
-  // *************************************************************************************************************************************************************************************
+  // todo new *************************************************************************************************************************************************************************************
 //                                                                                                                    LOAD GROUP DATA --- BEGIN
 // *************************************************************************************************************************************************************************************
-
 
   /**
    * Učitavanje grupe
@@ -292,90 +303,71 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
    *            zastavica koja označava dali je potrebno provjeravati security
    *            Kod prvog učitavanja je potrebno, kod ostalih ne.
    */
-  private loadGroupData(id: string, checkSecurity: boolean): Promise<Group> {
-
+  private loadGroupDataPromise(id: string, checkSecurity: boolean): Promise<Group> {
 
     return new Promise<Group>((resolve, reject) => {
-
       try {
         this.index = 1;
         this.indexWithExposure = 1;
 
-// FETCH GROUP
-        const sub0 = this.rispoService.findOne(id).subscribe(response => {
+        const context: LoadGroupModel = {id: id, checkSecurity: checkSecurity, group: new Group()};
 
-            this.group = response;
-            this.rispoService.setReportsDetailsGroup(this.group);
+        // 1. dohvaćanje grupe
+        fromPromise(this.findOneGroupPromise(context)).pipe(
+          // 2. provjera prava na grupu
+          switchMap(q => this.checkSecurityAndloadGroupMembersPromise(q)),
+          // 3. dohvaćanje članova grupe
+          switchMap(q => this.loadGroupMembersPromise(q)),
+          // 4. provjera prava na sve članove grupe
+          switchMap(q => this.checkSecurityAndloadExposurePromise(q)),
+          // 5. dohvaćanje SVIH izloženosti svakog člana
+          switchMap(q => this.loadExposureForEachMembersPromise(q)),
+          // 6. dohvaćanje SVIH kolaterala svake izloženosti
+          switchMap(q => this.laodAllCollateralsPromise(q))
+        ).subscribe(response => {
+          // završeno dohvaćanje svih podataka grupe
+          // svi podaci su agregirani u jedan objekt klase "Group"
+          this.group = response.group;
+          this.rispoService.setReportsDetailsGroup(this.group);
 
+          const group = this.group;
 
-            if (checkSecurity) {
-
-              this.securityService.imaPravoNaGrupu(this.rispoService.getReportsDetailsGroup(), this.userService.getLoggedUserUser().orgJeds).then(responseImaPravoNaGrupu => {
-// todo check ima pravo na grupu
-                if (responseImaPravoNaGrupu) {
-
-                  checkSecurity = false;  // ima pravo na grupu, nemoramo gledati klijente
-
-                  this.loadGroupMembers(id, checkSecurity).then(value => {
-                    const group = value;
-
-                    for (const c of group.members) {
-                      if (c.shouldHaveExposure() && c.error) {
-                        this.addMessage('GREŠKA', 'Dogodila se greska kod dohvata izlozenosti za klijente obojane crvenom bojom. Pokusajte rucno ponoviti dohvat samo za te klijente!');
-                        break;
-                      }
-                    }
-
-
-                    resolve(value);
-
-
-                  });
-
-                } else {
-
-                  //  nema pravo na grupu i grupa ima status U_RADU
-                  // - nema prava jer za listu izvještaja u radu provjeravamo u bazi grupu i klijente
-                  // jedini način da se ovo desi jest pristup direktno preko linka
-
-                  if (this.rispoService.getReportsDetailsGroup().status === ReportStatus.IN_PROGRESS) {
-                    this.redirect();
-                    // todo return??
-                    return;
-                  }
-
-                }
-
-              }, error1 => {
-
-                this.log('ERROR imaPravoNaGrupu (' + id + '): ' + error1);
-                this.loadGroupDataErrorHandling(error1);
-              });
-
-              // this.subscriptions.push(sub1);
-
-            } else {
-
-              this.loadGroupMembers(id, checkSecurity).then(value => {
-
-                const group = value;
-
-                for (const c of group.members) {
-                  if (c.shouldHaveExposure() && c.error) {
-                    this.addMessage('GREŠKA', 'Dogodila se greska kod dohvata izlozenosti za klijente obojane crvenom bojom. Pokusajte rucno ponoviti dohvat samo za te klijente!');
-                    break;
-                  }
-                }
-
-                resolve(value);
-              });
+          for (const c of group.members) {
+            if (c.shouldHaveExposure() && c.error) {
+              this.addMessage(
+                'GREŠKA',
+                'Dogodila se greska kod dohvata izlozenosti za klijente obojane crvenom bojom. ' +
+                'Pokusajte rucno ponoviti dohvat samo za te klijente!');
+              break;
             }
+          }
+          resolve(group);
 
+        }, error1 => reject(error1));
+
+      } catch (e) {
+        this.log('ERROR loadGroupData' + e);
+        this.loadGroupDataErrorHandling(e);
+      }
+    });
+  }
+
+  private findOneGroupPromise(loadGroupModel: LoadGroupModel): Promise<LoadGroupModel> {
+
+
+    return new Promise<LoadGroupModel>((resolve, reject) => {
+
+      try {
+
+        // FETCH GROUP
+        const sub0 = this.rispoService.findOne(loadGroupModel.id).subscribe(response => {
+            loadGroupModel.group = response;
+            resolve(loadGroupModel);
           },
           error1 => {
-            this.log('ERROR loadGroupData>findOne (' + id + '): ' + error1);
+            this.log('ERROR loadGroupData>findOneGroupPromise (' + loadGroupModel.id + '): ' + error1);
             this.loadGroupDataErrorHandling(error1);
-
+            reject(error1);
           }
         );
 
@@ -383,97 +375,111 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
 
 
       } catch (e) {
-        this.log('ERROR loadGroupData' + e);
-        this.loadGroupDataErrorHandling(e);
-
+        this.log('ERROR loadGroupData>findOneGroupPromise (' + loadGroupModel.id + '): ' + e);
+        reject(e);
       }
-
     });
-
   }
 
-  private loadGroupMembers(id: string, checkSecurity: boolean): Promise<Group> {
+
+  /**
+   * Provjerava ima li prijavljeni korisnik pravo na grupu, i ovisno o tome pokreće dohvaćanje članova.
+   * @param loadGroupModel
+   */
+  private checkSecurityAndloadGroupMembersPromise(loadGroupModel: LoadGroupModel): Promise<LoadGroupModel> {
 
 
-    return new Promise<Group>((resolve, reject) => {
+    return new Promise<LoadGroupModel>((resolve, reject) => {
 
       try {
+        let sub;
+        if (loadGroupModel.checkSecurity) {
 
-        this.loadGroupMembersAsPromise().then(group => {
+          //  prvo se provjrava ima li korisnik pravo na grupu
+          sub = this.securityService.imaPravoNaGrupu(loadGroupModel.group, this.userService.getLoggedUserUser().orgJeds).then(responseImaPravoNaGrupu => {
+// todo check ima pravo na grupu
+            if (responseImaPravoNaGrupu) {
 
-          if (group.members !== null) {
+              loadGroupModel.checkSecurity = false;  // ima pravo na grupu, nemoramo gledati klijente
 
-            //         this.rispoService.setReportsDetailsGroup(group);
+              resolve(loadGroupModel);
+            } else {
 
-            this.checkSecurityAndloadExposure(group, checkSecurity).then(value => {
+              //  nema pravo na grupu i grupa ima status U_RADU
+              // - nema prava jer za listu izvještaja u radu provjeravamo u bazi grupu i klijente
+              // jedini način da se ovo desi jest pristup direktno preko linka
 
-              value.refreshIndexes();
+              if (loadGroupModel.group.status === ReportStatus.IN_PROGRESS) {
+                this.redirect();
+                // todo return??
+                reject(new Error('Nema pravo na grupu'));
+                return;
+              }
 
-              this.rispoService.setReportsDetailsGroup(value);
+            }
 
-              resolve(value);
+          }, error1 => {
 
-            }, reason => {
+            this.log('ERROR imaPravoNaGrupu (' + loadGroupModel.id + '): ' + error1);
+            this.loadGroupDataErrorHandling(error1);
+            reject(error1);
+          });
 
-              this.log('ERROR loadGroupMembers (' + id + '): ' + reason);
-              this.loadGroupDataErrorHandling(reason);
+          this.subscriptions.push(sub);
 
-            });
+        } else {
 
-          }
+          //  nije potrebna provjra ima li korisnik pravo na grupu, odmah se učitavaju klijenti
+
+          loadGroupModel.checkSecurity = false;  // ima pravo na grupu, nemoramo gledati klijente
+
+          resolve(loadGroupModel);
 
 
-        }, reason => {
-
-          this.log('ERROR loadGroupMembers (' + id + '): ' + reason);
-          this.loadGroupDataErrorHandling(reason);
-        });
+        }
 
 
       } catch (e) {
-
-        this.log('ERROR loadGroupMembers (' + id + '): ' + e);
-        this.loadGroupDataErrorHandling(e);
-
+        this.log('ERROR loadGroupData>loadGroupMembersPromise (' + loadGroupModel.id + '): ' + e);
+        reject(e);
       }
-
     });
-
-
   }
 
-  private loadGroupMembersAsPromise(): Promise<Group> {
+  /**
+   * poziva RispoSevice i dohvaća sve članove grupe
+   * @param loadGroupModel
+   */
+  private loadGroupMembersPromise(loadGroupModel: LoadGroupModel): Promise<LoadGroupModel> {
 
 
-    return new Promise<Group>((resolve, reject) => {
+    return new Promise<LoadGroupModel>((resolve, reject) => {
 
       try {
 
-        this.log('Dohvacena grupa sa ID-jem ' + this.rispoService.getReportsDetailsGroup().id);
+        this.log('Dohvacena grupa sa ID-jem ' + loadGroupModel.id);
 
-        if (this.rispoService.getReportsDetailsGroup() !== null && this.rispoService.getReportsDetailsGroup().id !== null) {
+        if (loadGroupModel.group !== null && loadGroupModel.group.id !== null) {
 
-          this.currency = this.rispoService.getReportsDetailsGroup().currency;
+          this.currency = loadGroupModel.group.currency;
 
-          this.rispoService.clientsForGroup(this.rispoService.getReportsDetailsGroup().id).subscribe(members => {
+          const sub = this.rispoService.clientsForGroup(loadGroupModel.group.id).subscribe(members => {
 
-            this.group = this.rispoService.getReportsDetailsGroup();
+            loadGroupModel.group.members = members;
 
-            this.group.members = members;
-
-            resolve(this.group);
+            resolve(loadGroupModel);
 
           }, error1 => {
-            this.log('ERROR loadGroupDataSecondPart -> clientsForGroup(' + this.group.id + '): ' + error1);
+            this.log('ERROR loadGroupMembersPromise1 -> clientsForGroup(' + this.group.id + '): ' + error1);
 
             reject(error1);
 
           });
-
+          this.subscriptions.push(sub);
         }
 
       } catch (e) {
-        this.log('ERROR: loadGroupMembersAsPromise -> ' + e);
+        this.log('ERROR: loadGroupMembersPromise1 -> ' + e);
         reject(e);
       }
 
@@ -482,54 +488,65 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
 
   }
 
-  private checkSecurityAndloadExposure(group: Group, checkSecurity: boolean): Promise<Group> {
 
-    return new Promise<Group>((resolve, reject) => {
+  /**
+   * Provjerava ima li korisnik pravi na sve članove grupe
+   * @param loadGroupModel
+   */
+  private checkSecurityAndloadExposurePromise(loadGroupModel: LoadGroupModel): Promise<LoadGroupModel> {
+
+    return new Promise<LoadGroupModel>((resolve, reject) => {
 
       try {
-        if (checkSecurity) {
+        if (loadGroupModel.group.members !== null) {
+          if (loadGroupModel.checkSecurity) {
 
-          const promiseList: Array<Promise<boolean>> = new Array<Promise<boolean>>();
+            const promiseList: Array<Promise<boolean>> = new Array<Promise<boolean>>();
 
-          group.members.forEach(member => {
+            loadGroupModel.group.members.forEach(member => {
 
-            promiseList.push(this.securityService.imaPravoNaKlijenta(member, this.userService.getLoggedUserUser()));
+              promiseList.push(this.securityService.imaPravoNaKlijenta(member, this.userService.getLoggedUserUser()));
 
-          });
-
-
-          const subConcat = forkJoin(
-            promiseList
-          ).subscribe(response => {
-              response.forEach(value => {
-
-                if (checkSecurity && !response) {
-                  this.redirect();
-                  subConcat.unsubscribe();
-                }
-
-              });
+            });
 
 
-            }, (error1) => {
+            const subConcat = forkJoin(
+              promiseList
+            ).subscribe(response => {
+                response.forEach(value => {
 
-              this.log('ERROR imaPravoNaKlijenta' + error1);
-              // this.loadGroupDataErrorHandling(error1);
-              reject(error1);
+                  if (loadGroupModel.checkSecurity && !response) {
+                    this.redirect();
+                    subConcat.unsubscribe();
+                    reject(new Error('Korisnik nema pravo na klijente!!'));
+                  }
 
-            }, () => {
-
-              resolve(this.loadExposureForEachMembers());
-            }
-          );
+                });
 
 
-          this.subscriptions.push(subConcat);
+              }, (error1) => {
+
+                this.log('ERROR imaPravoNaKlijenta' + error1);
+                // this.loadGroupDataErrorHandling(error1);
+                reject(error1);
+
+              }, () => {
+
+                resolve(loadGroupModel);
+              }
+            );
+
+
+            this.subscriptions.push(subConcat);
+
+          } else {
+
+            resolve(loadGroupModel);
+
+          }
 
         } else {
-
-          resolve(this.loadExposureForEachMembers());
-
+          resolve(loadGroupModel);
         }
 
 
@@ -541,64 +558,115 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
     });
   }
 
-  private loadExposureForEachMembers(): Promise<Group> {
+  /**
+   * Dovaća izloženost za sve članove grupe
+   */
+  private loadExposureForEachMembersPromise(loadGroupModel: LoadGroupModel): Promise<LoadGroupModel> {
 
-    return new Promise<Group>((resolve, reject) => {
-
+    return new Promise<LoadGroupModel>((resolve, reject) => {
       try {
-
+        // 1. kreiranje liste tipa Promise
+        // lista sadrži funkcije s povratnim pozivom
         const membersPromiseArray: Array<Promise<Client>> = new Array<Promise<Client>>();
 
-        this.group.members.forEach(member => {
-
-          this.group = this.rispoService.getReportsDetailsGroup();
-
-          this.group.updateIntRate(member.intRateHRK, member.intRateEUR);
-          this.group.updateFees(member.feesHRK, member.feesEUR);
+        loadGroupModel.group.members.forEach(member => {
+          loadGroupModel.group.updateIntRate(member.intRateHRK, member.intRateEUR);
+          loadGroupModel.group.updateFees(member.feesHRK, member.feesEUR);
           member.index = this.index++;
-
           if (member.provjeriVrstuOsobe(Client.VRSTA_OSOBE_ZEMLJA)) {
             member.indexWithExposures = this.indexWithExposure;
             this.indexWithExposure++;
             return;
           }
-
-          membersPromiseArray.push(this.loadExposureForMember(member));
-
-
+          // 2. za svakog člana kreira se ASINKRONI poziv i dodaje se u listu
+          // svaki poziv dohvaća SVE izloženosti JEDNOG člana
+          membersPromiseArray.push(this.loadExposureForOneMemberPromise(member));
         });
 
+        // 3. forkJoin pokreće paralelno izvršavanje liste ASINKRONIH poziva
         forkJoin(
           membersPromiseArray
         ).subscribe(clients => {
-
+          // 4. svaki element liste "clients" je odgovor od jednog poziva WS
           clients.forEach(clientNew => {
-
-            for (let i = 0; !!this.group.members && i < this.group.members.length; i++) {
-
-              if (this.group.members[i].id === clientNew.id) {
-
-                this.group.members[i] = clientNew;
-
+            // 5. ažuriranje podataka o svim članovima
+            for (let i = 0; !!loadGroupModel.group.members && i < loadGroupModel.group.members.length; i++) {
+              if (loadGroupModel.group.members[i].id === clientNew.id) {
+                loadGroupModel.group.members[i] = clientNew;
                 continue;
-
-
               }
-
             }
-
-
           });
 
         }, error1 => {
           reject(error1);
         }, () => {
-          resolve(this.group);
+          resolve(loadGroupModel);
         });
+      } catch (e) {
+        this.log('ERROR: loadExposureForEachMembers -> ' + e);
+        reject(e);
+      }
+    });
+  }
+
+
+  /**
+   * Dohvaća kolaterale za za svaku izloženost,, ako postoje
+   * @param member
+   */
+  private laodAllCollateralsPromise(loadGroupModel: LoadGroupModel): Promise<LoadGroupModel> {
+
+    return new Promise<LoadGroupModel>((resolve, reject) => {
+
+      // let group: Group = this.rispoService.getReportsDetailsGroup();
+      try {
+        if (loadGroupModel.group.members) {
+          const clientsCollateralPromiseArray: Array<Promise<LoadGroupModel>> = new Array<Promise<LoadGroupModel>>();
+
+          for (let i = 0; loadGroupModel.group.members && i < loadGroupModel.group.members.length; i++) {
+            const member: Client = loadGroupModel.group.members[i];
+            clientsCollateralPromiseArray.push(this.laodAllCollateralsForOneMemberPromise({
+              selectedMember: member,
+              id: loadGroupModel.id,
+              group: loadGroupModel.group,
+              checkSecurity: loadGroupModel.checkSecurity
+            }));
+          } // END for
+
+          forkJoin(
+            clientsCollateralPromiseArray
+          ).subscribe(value => {
+
+            value.forEach(response => {
+
+              for (let i = 0; loadGroupModel.group.members && i < loadGroupModel.group.members.length; i++) {
+
+                if (loadGroupModel.group.members[i].id === response.selectedMember.id) {
+
+                  loadGroupModel.group.members[i] = response.selectedMember;
+
+                  continue;
+
+                }
+
+              }
+
+
+            });
+            resolve(loadGroupModel);
+
+
+          }, error1 => reject(error1));
+
+
+        } else {
+          resolve(loadGroupModel);
+        }
 
 
       } catch (e) {
-        this.log('ERROR: loadExposureForEachMembers -> ' + e);
+        this.log('ERROR: laodCollateralsForEachExposure -> ' + e);
         reject(e);
       }
 
@@ -607,7 +675,131 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
 
   }
 
-  private loadExposureForMember(member: Client): Promise<Client> {
+
+  /**
+   * Dohvaća kolaterale za određenog klijenta
+   * @param member
+   */
+  private laodAllCollateralsForOneMemberPromise(loadGroupModel: LoadGroupModel): Promise<LoadGroupModel> {
+
+    return new Promise<LoadGroupModel>((resolve, reject) => {
+
+      try {
+        const member = loadGroupModel.selectedMember;
+
+        if (member.exposures === undefined || member.exposures === null || member.exposures.length === 0) {
+          resolve(loadGroupModel);
+        } else {
+
+          if (member.exposures != null && member.exposures.length !== 0) {
+
+            member.indexWithExposures = this.indexWithExposure;
+            this.indexWithExposure++;
+            const exposurePromiseArray: Array<Promise<Exposure>> = new Array<Promise<Exposure>>();
+
+            member.exposures.forEach(exposure => {
+              member.total.add(exposure);
+              loadGroupModel.group.total.add(exposure);
+              exposurePromiseArray.push(this.findCollateralByOwnerId(exposure));
+
+            });
+
+
+            forkJoin(
+              exposurePromiseArray
+            ).subscribe(exposureArray => {
+
+                // exposureNew is exposure with collaterals
+
+                // this.rispoService.setReportsDetailsGroup(group);
+
+                exposureArray.forEach(exposureNew => {
+
+                  for (let i = 0; i < member.exposures.length; i++) {
+
+                    if (member.exposures[i].id === exposureNew.id) {
+
+                      member.exposures[i] = exposureNew;
+
+                      continue;
+
+                    }
+
+                  }
+
+
+                });
+
+
+              }, error1 => {
+
+                reject(error1);
+
+              }, () => {
+
+                resolve(loadGroupModel);
+
+              }
+            );
+
+          } else if (member.manualInput || member.error) {
+
+            member.indexWithExposures = this.indexWithExposure;
+            this.indexWithExposure++;
+            resolve(loadGroupModel);
+
+
+          }
+
+        }
+
+      } catch (e) {
+        this.log('ERROR: laodCollateralsForEachExposure -> ' + e);
+        reject(e);
+      }
+
+    });
+
+
+  }
+
+  /**
+   * dohvaća kolaterale za određeno izloženost
+   * @param exposure
+   */
+  private findCollateralByOwnerId(exposure: Exposure): Promise<Exposure> {
+
+    return new Promise<Exposure>((resolve, reject) => {
+
+      try {
+
+        const sub = this.rispoService.findCollateralByOwnerId(exposure.id).subscribe(response => {
+          exposure.collaterals = response;
+          resolve(exposure);
+        }, error1 => {
+
+          reject(error1);
+        });
+        this.subscriptions.push(sub);
+
+      } catch (e) {
+
+        this.log('ERROR: findCollateralByOwnerId -> ' + e);
+        reject(e);
+
+      }
+
+    });
+
+
+  }
+
+
+  /**
+   * Dohvaća izloženost za određenog člana grupe.
+   * @param member
+   */
+  private loadExposureForOneMemberPromise(member: Client): Promise<Client> {
 
     return new Promise<Client>((resolve, reject) => {
 
@@ -639,14 +831,9 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
 
             }
 
-            resolve(member);
-
-
-          } else {
-
-            resolve(this.laodCollateralsForEachExposure(member));
-
           }
+
+          resolve(member);
 
 
         }, reason => {
@@ -657,7 +844,7 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
 
 
       } catch (e) {
-        this.log('ERROR: loadExposureForMember -> ' + e);
+        this.log('ERROR: loadExposureForOneMemberPromise -> ' + e);
         reject(e);
       }
 
@@ -666,109 +853,10 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
 
   }
 
-  private laodCollateralsForEachExposure(member: Client): Promise<Client> {
+  // *************************************************************************************************************************************************************************************
+//                                                                                                                    LOAD GROUP DATA --- BEGIN
+// *************************************************************************************************************************************************************************************
 
-    return new Promise<Client>((resolve, reject) => {
-
-      // let group: Group = this.rispoService.getReportsDetailsGroup();
-      try {
-        if (member.exposures != null && member.exposures.length !== 0) {
-
-          member.indexWithExposures = this.indexWithExposure;
-          this.indexWithExposure++;
-          const exposurePromiseArray: Array<Promise<Exposure>> = new Array<Promise<Exposure>>();
-
-          member.exposures.forEach(exposure => {
-            member.total.add(exposure);
-            this.group.total.add(exposure);
-            exposurePromiseArray.push(this.findCollateralByOwnerId(exposure));
-
-          });
-
-
-          forkJoin(
-            exposurePromiseArray
-          ).subscribe(exposureArray => {
-
-              // exposureNew is exposure with collaterals
-
-              // this.rispoService.setReportsDetailsGroup(group);
-
-              exposureArray.forEach(exposureNew => {
-
-                for (let i = 0; i < member.exposures.length; i++) {
-
-                  if (member.exposures[i].id === exposureNew.id) {
-
-                    member.exposures[i] = exposureNew;
-
-                    continue;
-
-                  }
-
-                }
-
-
-              });
-
-
-            }, error1 => {
-
-              reject(error1);
-
-            }, () => {
-
-              resolve(member);
-
-            }
-          );
-
-        } else if (member.manualInput || member.error) {
-
-          member.indexWithExposures = this.indexWithExposure;
-          this.indexWithExposure++;
-          resolve(member);
-
-
-        }
-
-
-      } catch (e) {
-        this.log('ERROR: laodCollateralsForEachExposure -> ' + e);
-        reject(e);
-      }
-
-    });
-
-
-  }
-
-  private findCollateralByOwnerId(exposure: Exposure): Promise<Exposure> {
-
-    return new Promise<Exposure>((resolve, reject) => {
-
-      try {
-
-        const sub = this.rispoService.findCollateralByOwnerId(exposure.id).subscribe(response => {
-          exposure.collaterals = response;
-          resolve(exposure);
-        }, error1 => {
-
-          reject(error1);
-        });
-        this.subscriptions.push(sub);
-
-      } catch (e) {
-
-        this.log('ERROR: findCollateralByOwnerId -> ' + e);
-        reject(e);
-
-      }
-
-    });
-
-
-  }
 
   private loadGroupDataErrorHandling(e: any): void {
     this.log('Greska kod ucitavanja grupe' + e.toString());
@@ -811,7 +899,7 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
         } else {
 
           // todo check security?? HC false or real state from user service?
-          this.loadGroupData(this.rispoService.getReportsDetailsGroup().id.toString(), false).then(group => {
+          this.loadGroupDataPromise(this.rispoService.getReportsDetailsGroup().id.toString(), false).then(group => {
 
             for (let i = 0; i < group.members.length; i++) {
               const c: Client = group.members[i];
@@ -1065,7 +1153,7 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
         promiseArray
       ).subscribe(response => {
 
-          this.loadGroupData(this.rispoService.getReportsDetailsGroup().id.toString(), this.userService.getLoggedUserUser().checkSecurity);
+          this.loadGroupDataPromise(this.rispoService.getReportsDetailsGroup().id.toString(), this.userService.getLoggedUserUser().checkSecurity);
 
 
         }, (error1) => {
@@ -1074,7 +1162,7 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
 
           this.log('Greska kod odgrupiravanja klijenta sa ID-jem ' + client.id + ' ERROR: ' + JSON.stringify(error1));
 
-          this.loadGroupData(this.rispoService.getReportsDetailsGroup().id.toString(), this.userService.getLoggedUserUser().checkSecurity);
+          this.loadGroupDataPromise(this.rispoService.getReportsDetailsGroup().id.toString(), this.userService.getLoggedUserUser().checkSecurity);
 
           // todo za razmisliti  throw new Error(error1);
 
@@ -1646,7 +1734,6 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
   }
 
 
-
   setNewPaginationDataClientTableData_GroupMembers(showAllClients: boolean = false): void {
 
     if (this.rispoService.getReportsDetailsGroup().members !== undefined && this.rispoService.getReportsDetailsGroup().members !== null) {
@@ -1693,4 +1780,11 @@ export class ClientTableComponent extends AbstractComponent implements OnInit, O
   }
 
 
+}
+
+export interface LoadGroupModel {
+  id: string;
+  checkSecurity: boolean;
+  group: Group;
+  selectedMember?: Client;
 }
